@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     private static R getResp(String e, HttpServletRequest request) {
         R r = R.fail(e);
-        r.put("requestUrl", request.getContextPath());
+        r.put("requestUrl", request.getServletPath());
         r.put("time", DateUtil.now());
         return r;
     }
