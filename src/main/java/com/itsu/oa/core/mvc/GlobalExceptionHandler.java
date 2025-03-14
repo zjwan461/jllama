@@ -1,6 +1,7 @@
 package com.itsu.oa.core.mvc;
 
 import cn.hutool.core.date.DateUtil;
+import com.itsu.oa.core.exception.AuthException;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import lombok.extern.slf4j.Slf4j;
@@ -15,23 +16,32 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = JException.class)
-    @ResponseStatus(HttpStatus.OK)
-    public R handle(HttpServletRequest request, JException exception) {
-        log.info("JException: {}", exception.getMessage());
-        R r = R.fail(exception.getMessage());
+    private static R getResp(String e, HttpServletRequest request) {
+        R r = R.fail(e);
         r.put("requestUrl", request.getContextPath());
         r.put("time", DateUtil.now());
         return r;
     }
 
+    @ExceptionHandler(value = JException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public R handle(HttpServletRequest request, JException e) {
+        log.info("JException: {}", e.getMessage());
+        return getResp(e.getMessage(), request);
+    }
+
+    @ExceptionHandler(value = AuthException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public R handleAuth(HttpServletRequest request, AuthException e) {
+        log.info("AuthException: {}", e.getMessage());
+        return getResp(e.getMessage(), request);
+    }
+
+
     @ExceptionHandler(value = Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public R handleOther(HttpServletRequest request, Exception e) {
         log.error("unexpect exception happened", e);
-        R r = R.fail(e.getMessage());
-        r.put("requestUrl", request.getContextPath());
-        r.put("time", DateUtil.now());
-        return r;
+        return getResp(e.getMessage(), request);
     }
 }

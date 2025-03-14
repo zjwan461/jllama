@@ -4,18 +4,18 @@
       <!-- 头部导航区域 -->
       <div>
         <img
-          src="../assets/logo.png"
-          width="100"
+          src="../assets/ollama.png"
+          width="30"
           alt
         >
-        <span>九节兑换平台</span>
+        <span>Jllama</span>
       </div>
       <el-dropdown @command="handleCommand">
         <div class="el-dropdown-link">
           <img
-            src="../assets/logo.png"
+            src="../assets/ollama.png"
             alt
-            width="150"
+            width="30"
           >
           <i class="el-icon-arrow-down el-icon--right" />
         </div>
@@ -62,28 +62,18 @@
         >
           <el-menu-item index="/home" >
             <i class="el-icon-s-home"></i>
-            <span slot="title">首页</span>
+            <span slot="title">系统监控</span>
           </el-menu-item>
-          <el-submenu
+          <el-menu-item
             v-for="(item) in menuData"
             :key="item.id"
-            :index="item.id + ''"
+            :index="item.href"
           >
             <template slot="title">
               <i :class="item.icon" />
               <span>{{ item.title }}</span>
             </template>
-            <el-menu-item
-              v-for="(child) in item.children"
-              :key="child.id"
-              :index="child.href !== '/welcome' ? child.href + '/' + child.id : '/welcome'"
-            >
-              <template slot="title">
-                <i :class="child.icon" />
-                <span>{{ child.title }}</span>
-              </template>
-            </el-menu-item>
-          </el-submenu>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       <el-container>
@@ -91,7 +81,7 @@
           <router-view />
         </el-main>
         <el-footer>
-          <span>&copy;三牛工作室版权所有</span>
+          <span>&copy;jllama</span>
         </el-footer>
       </el-container>
     </el-container>
@@ -109,7 +99,7 @@ export default {
     }
   },
   created() {
-    this.getSiteInfo()
+    this.getAppInfo()
     this.getMenuTree()
     this.active = window.sessionStorage.getItem('menu-active-path')
   },
@@ -119,13 +109,8 @@ export default {
       window.sessionStorage.setItem('menu-active-path', index)
       this.active = index
     },
-    getSiteInfo() {
-      this.$http.get('/admin/api/site-info/')
-        .then(res => {
-          sessionStorage.setItem('siteInfo', JSON.stringify(res.data.data.siteInfo))
-        }).catch(err => {
-          console.log(err)
-      })
+    getAppInfo() {
+      sessionStorage.getItem("appInfo")
     },
     handleCommand(command) {
       if (command === 'aboutme') {
@@ -146,7 +131,7 @@ export default {
     },
     getMenuTree() {
       this.$http
-        .get('/admin/api/auth/v2/nav')
+        .get('/api/base/nav')
         .then(res => {
           // console.log(res.data)
           this.menuData = res.data
@@ -172,7 +157,7 @@ export default {
     },
     logout() {
       window.sessionStorage.clear()
-      this.$http.get('/admin/api/auth/logout', (res) => { console.log })
+      this.$http.get('/api/auth/logout', (res) => { console.log })
       this.$router.push('/')
     },
     // 点击按钮，切换菜单折叠与展开

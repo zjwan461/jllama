@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath: '/ollama-agent',
+  publicPath: '/app',
   lintOnSave: false,
 
   devServer: {

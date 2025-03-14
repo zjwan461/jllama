@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "模型监控",
+    "icon": "el-icon-s-home",
+    "href": "/watch"
+  },
+  {
+    "id": 2,
+    "title": "模型管理",
+    "icon": "el-icon-s-home",
+    "href": "/mgn"
+  },
+  {
+    "id": 3,
+    "title": "简单对话",
+    "icon": "el-icon-s-home",
+    "href": "/chat"
+  }
+]

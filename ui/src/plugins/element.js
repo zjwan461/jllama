@@ -37,12 +37,15 @@ import {
   Checkbox,
   Radio,
   DatePicker,
-  InputNumber
+  InputNumber,
+  Loading,
+  Notification
 
 } from 'element-ui'
 
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm
+Vue.prototype.$notify = Notification
 Vue.use(Button)
 Vue.use(Form)
 Vue.use(FormItem)
@@ -79,3 +82,4 @@ Vue.use(Checkbox)
 Vue.use(Radio)
 Vue.use(DatePicker)
 Vue.use(InputNumber)
+Vue.use(Loading)

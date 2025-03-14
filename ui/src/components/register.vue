@@ -2,7 +2,7 @@
   <div class="registerContent">
     <div class="registerArea">
       <el-card>
-        <h1 class="registerHeader">账号注册</h1>
+        <h1 class="registerHeader">应用初始化</h1>
         <el-form
           ref="registerForm"
           :model="registerForm"
@@ -46,33 +46,6 @@
               type="email"
             />
           </el-form-item>
-          <el-form-item
-            label="身份证"
-            prop="idCardNum"
-          >
-            <el-input
-              v-model="registerForm.idCardNum"
-              type="text"
-            />
-          </el-form-item>
-          <el-form-item
-            label="QQ号"
-            prop="qq"
-          >
-            <el-input
-              v-model="registerForm.qq"
-              type="text"
-            />
-          </el-form-item>
-          <el-form-item
-            label="姓名"
-            prop="name"
-          >
-            <el-input
-              v-model="registerForm.name"
-              type="text"
-            />
-          </el-form-item>
           <el-form-item>
             <el-button
               type="primary"
@@ -82,14 +55,14 @@
             </el-button>
           </el-form-item>
         </el-form>
-        <a href="/admin/#/login" style="color: #01AAED">前往登录</a>
+        <!--        <a href="javascript:;" style="color: #01AAED" @click="toLogin">前往登录</a>-->
       </el-card>
     </div>
   </div>
 </template>
 
 <script>
-import { getRequestBodyStr } from '@/common/common'
+import {getRequestBodyJson} from '@/common/common'
 
 export default {
   name: 'register',
@@ -112,27 +85,19 @@ export default {
       registerForm: {},
       rules: {
         username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' }
+          {required: true, message: '请输入用户名', trigger: 'blur'}
         ],
         password: [
-          { required: true, message: '', trigger: 'blur' },
-          { min: 6, message: '最少6位密码', trigger: 'blur' }
+          {required: true, message: '', trigger: 'blur'},
+          {min: 6, message: '最少6位密码', trigger: 'blur'}
         ],
         rePwd: [
-          { validator: rePwd, trigger: 'blur', required: true }
-        ],
-        idCardNum: [
-          { validator: idCardNumValidator, trigger: 'blur', required: true }
+          {validator: rePwd, trigger: 'blur', required: true}
         ],
         email: [
-          { pattern: /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/, trigger: 'blur', required: true }
+          {pattern: /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/, trigger: 'blur', required: true}
         ],
-        qq: [
-          { pattern: /^[1-9]{1}[0-9]{4,14}$/, trigger: 'blur', required: true }
-        ],
-        name: [
-          { required: true, message: '请输入姓名', trigger: 'blur' }
-        ]
+
       }
     }
   },
@@ -140,13 +105,16 @@ export default {
     onSubmit(value) {
       this.$refs[value].validate(valid => {
         if (!valid) return
-        this.$http.post('/admin/api/auth/register', getRequestBodyStr(this.registerForm))
+        this.$http.post('/api/base/register', getRequestBodyJson(this.registerForm))
           .then(res => {
-            if (res.data.code !== 0) return this.$message.error(res.data.message)
-            this.$message.success('注册成功，等待管理员审核')
+            if (res.success === false) return this.$message.error(res.message)
+            this.$message.success('注册成功，即将返回登录页')
+            setTimeout(() => {
+              this.$router.push("/login")
+            }, 3000);
           }).catch(err => {
-            console.log(err)
-          })
+          console.log(err)
+        })
       })
     }
   }
@@ -175,8 +143,8 @@ export default {
   padding: 20px 0;
 }
 
-.registerHeader{
- text-align: center
+.registerHeader {
+  text-align: center
 }
 
 </style>

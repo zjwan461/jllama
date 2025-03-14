@@ -1,13 +1,23 @@
 package com.itsu.oa.config;
 
 import com.itsu.oa.core.filter.AuthFilter;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import javax.annotation.Resource;
+
 @Configuration
+@Getter
+@Setter
 public class WebConfig {
+
+
+    @Resource
+    private JllamaConfigProperties jllamaConfigProperties;
 
     @Bean
     public FilterRegistrationBean<DelegatingFilterProxy> delegatingFilterProxy() {
@@ -22,6 +32,8 @@ public class WebConfig {
 
     @Bean
     public AuthFilter authFilter() {
-        return new AuthFilter();
+        AuthFilter authFilter = new AuthFilter();
+        authFilter.setIgnoredPaths(jllamaConfigProperties.getAuth().getIgnorePaths());
+        return authFilter;
     }
 }
