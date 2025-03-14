@@ -3,10 +3,16 @@ package com.itsu.oa.config;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
+@MapperScan(basePackages = "com.itsu.oa.mapper")
+@EnableTransactionManagement(proxyTargetClass = true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AppConfig {
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
