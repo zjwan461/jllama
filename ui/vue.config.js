@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath: '/app',
+  publicPath: '/',
   lintOnSave: false,
 
   devServer: {

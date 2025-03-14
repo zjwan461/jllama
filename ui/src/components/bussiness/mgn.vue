@@ -197,7 +197,7 @@ export default {
       this.showDialog = true
       this.modelForm = row
       if (!this.modelForm.revision) {
-        // this.modelForm.revision = ''
+        this.modelForm.revision = ''
       }
       if (!this.modelForm.root) {
         this.modelForm.root = ''

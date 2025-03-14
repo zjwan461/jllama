@@ -18,6 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
+src/main/resources/static/
 
 ### NetBeans ###
 /nbproject/private/
