@@ -32,9 +32,9 @@ const routes = [{
     name: 'welcome',
     component: () => import('../components/welcome.vue')
   }, {
-    path: '/aboutme',
-    name: 'aboutme',
-    component: () => import('../components/aboutme.vue')
+    path: '/setting',
+    name: 'setting',
+    component: () => import('../components/setting.vue')
   }, {
     path: '/watch',
     name: 'watch',

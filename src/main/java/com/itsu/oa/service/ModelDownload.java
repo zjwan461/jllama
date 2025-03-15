@@ -11,6 +11,8 @@ public interface ModelDownload {
 
     Flux<String> download(String repo, String filename);
 
+    void downloadAsync(String repo, String filename);
+
     boolean isMatch(String primaryStage);
 
 }

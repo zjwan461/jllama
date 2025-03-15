@@ -28,3 +28,7 @@ jllama:
     ignore-paths: ${spring.h2.console.path},/app/**,*.css,*.js
   model:
     save-dir: D:/models #~/.jllama/models
+logging:
+  level:
+    root: info
+    com.jllama: debug

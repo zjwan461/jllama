@@ -36,6 +36,8 @@ create table if not exists model
     primary key (id)
 );
 
+create unique index if not exists model_name_idx on `model`(name);
+
 create table if not exists file_download
 (
     id          bigint unsigned not null,

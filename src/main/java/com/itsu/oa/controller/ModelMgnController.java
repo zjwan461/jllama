@@ -1,6 +1,7 @@
 package com.itsu.oa.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -20,6 +21,7 @@ import com.itsu.oa.mapper.FileDownloadMapper;
 import com.itsu.oa.service.ModelDownload;
 import com.itsu.oa.service.ModelService;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -44,6 +46,9 @@ public class ModelMgnController {
     @Resource
     private FileDownloadMapper fileDownloadMapper;
 
+    @Resource
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
     @Auth
     @GetMapping("/list")
     public R list(int page, int limit, String search) {
@@ -61,6 +66,10 @@ public class ModelMgnController {
     @Auth
     @PostMapping("/create")
     public R create(@RequestBody ModelReq modelReq) {
+        Model exist = modelService.getOne(Wrappers.lambdaQuery(Model.class).eq((SFunction<Model, String>) Model::getName, modelReq.getName()));
+        if (exist != null) {
+            return R.success(exist);
+        }
         Model model = new Model();
         BeanUtil.copyProperties(modelReq, model);
         model.setSaveDir(jllamaConfigProperties.getModel().getSaveDir() + "/" + modelReq.getDownloadPlatform() + "/" + model.getRepo());
@@ -75,8 +84,27 @@ public class ModelMgnController {
     public R delete(@PathVariable("id") Long id, @PathVariable("delFile") boolean delFile) {
         modelService.removeById(id);
         if (delFile) {
-            fileDownloadMapper.delete(Wrappers.lambdaQuery(FileDownload.class)
-                    .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, id));
+            List<FileDownload> files = fileDownloadMapper.selectList((Wrappers.lambdaQuery(FileDownload.class)
+                    .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, id)));
+            files.forEach(x -> {
+                File file = new File(x.getFilePath() + "/" + x.getFileName());
+                if (file.exists()) {
+                    FileUtil.del(file);
+                }
+                fileDownloadMapper.deleteById(x.getId());
+            });
+        }
+        return R.success();
+    }
+
+    @Auth
+    @DeleteMapping("/del-file/{id}")
+    public R deleteFile(@PathVariable("id") Long id) {
+        FileDownload fileDownload = fileDownloadMapper.selectById(id);
+        if (fileDownload != null) {
+            File file = new File(fileDownload.getFilePath(), fileDownload.getFileName());
+            FileUtil.del(file);
+            fileDownloadMapper.deleteById(id);
         }
         return R.success();
     }
@@ -128,8 +156,8 @@ public class ModelMgnController {
     }
 
     @Auth
-    @GetMapping(value = "/dl", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    public Flux<String> download(String repo, String filename) {
+    @GetMapping(value = "/dl")
+    public R download(String repo, String filename) {
         if (StrUtil.isBlank(repo)) {
             throw new JException("模型仓库：repo必填");
         }
@@ -138,11 +166,12 @@ public class ModelMgnController {
         }
         String primaryStage = jllamaConfigProperties.getModel().getPrimaryStage();
         if (modelScopeModelDownload.isMatch(primaryStage)) {
-            return modelScopeModelDownload.download(repo, filename);
+            modelScopeModelDownload.downloadAsync(repo, filename);
         } else {
             throw new JException("暂不支持" + primaryStage + "的模型下载方式");
         }
 
+        return R.success();
     }
 
     @Auth
@@ -150,6 +179,13 @@ public class ModelMgnController {
     public R listDownloadFiles(Long modelId) {
         List<FileDownload> list = fileDownloadMapper.selectList(Wrappers.lambdaQuery(FileDownload.class)
                 .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, modelId));
+        list.forEach(x -> {
+            File file = new File(x.getFilePath(), x.getFileName());
+            if (file.exists()) {
+                double progress = (double) file.length() / x.getFileSize() * 100;
+                x.setPercent(String.format("%.2f%%", progress));
+            }
+        });
         return R.success(list);
 
     }
@@ -162,23 +198,32 @@ public class ModelMgnController {
             return null;
         }
         return Flux.create(fluxSink -> {
-            while (true) {
-                try {
-                    File file = new File(fileDownload.getFilePath(), fileDownload.getFileName());
-                    if (!file.exists()) {
-                        fluxSink.next("0%");
-                        break;
+            threadPoolTaskExecutor.submit(() -> {
+                long last = new Date().getTime();
+                while (true) {
+                    try {
+                        File file = new File(fileDownload.getFilePath(), fileDownload.getFileName());
+                        if (!file.exists()) {
+                            fluxSink.next("0%");
+                            break;
+                        }
+                        double progress = (double) file.length() / fileDownload.getFileSize() * 100;
+                        String progressStr = String.format("%.2f%%", progress);
+                        if (progress >= 100.00) {
+                            fluxSink.next(progressStr);
+                            break;
+                        }
+                        long current = new Date().getTime();
+                        if (current - last > 1000) {
+                            fluxSink.next(progressStr);
+                            last = current;
+                        }
+                    } catch (Exception e) {
+                        fluxSink.error(e);
                     }
-                    double progress = (double) file.length() / fileDownload.getFileSize() * 100;
-                    String progressStr = String.format("%.2f%%", progress);
-                    fluxSink.next(progressStr);
-                    if (progress >= 100.00) {
-                        break;
-                    }
-                } catch (Exception e) {
-                    fluxSink.error(e);
                 }
-            }
+            });
+
         });
     }
 }

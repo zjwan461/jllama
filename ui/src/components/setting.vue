@@ -1,5 +1,5 @@
 <template>
-  <div>about me</div>
+  <div>设置</div>
 </template>
 
 <script>

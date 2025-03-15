@@ -14,5 +14,5 @@ public class FileDownload extends BaseEntity {
     private String filePath;
     private Long fileSize;
     @TableField(exist = false)
-    private String percent;
+    private String percent = "0%";
 }

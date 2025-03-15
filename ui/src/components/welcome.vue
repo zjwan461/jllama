@@ -129,12 +129,12 @@
         </el-card>
       </el-col>
 
-      <el-col :span="24" class="card-box">
+<!--      <el-col :span="24" class="card-box">
         <el-card>
           <div slot="header">
             <span><i class="el-icon-coffee-cup"></i> Java虚拟机信息</span>
           </div>
-          <div class="el-table el-table--enable-row-hover el-table--medium">
+          <div class="el-table el-table&#45;&#45;enable-row-hover el-table&#45;&#45;medium">
             <table cellspacing="0" style="width: 100%;table-layout:fixed;">
               <tbody>
               <tr>
@@ -165,7 +165,7 @@
             </table>
           </div>
         </el-card>
-      </el-col>
+      </el-col>-->
 
       <el-col :span="24" class="card-box">
         <el-card>
@@ -218,13 +218,13 @@ export default {
   },
   created() {
     this.getList();
-    this.openLoading();
+    // this.openLoading();
   },
   methods: {
     /** 查询服务器信息 */
     getList() {
       this.$http.get('/api/server/monitor').then(res => {
-        console.log(res.data)
+        // console.log(res.data)
         this.server = res.data;
       })
     },

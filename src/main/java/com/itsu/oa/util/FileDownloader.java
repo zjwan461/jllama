@@ -1,5 +1,6 @@
 package com.itsu.oa.util;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
@@ -9,6 +10,7 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+@Slf4j
 public class FileDownloader {
 
     private static final int BUFFER_SIZE = 4096;
@@ -55,9 +57,9 @@ public class FileDownloader {
                             fluxSink.next(String.format("%.2f%%", progress));
                         }
                     }
-                    System.out.println("File downloaded successfully.");
+                    log.info("File:{} downloaded successfully.", file.getName());
                 } else {
-                    System.out.println("Error: HTTP response code " + responseCode);
+                    log.error("Error: HTTP response code {} ",responseCode);
                 }
 
             } catch (IOException e) {
@@ -106,12 +108,14 @@ public class FileDownloader {
 
                     // 打印下载进度
                     double progress = (double) downloadedBytes / fileSize * 100;
-                    System.out.printf("Download progress: %.2f%%\n", progress);
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Download progress: %.2f%%\n", progress));
+                    }
                 }
             }
-            System.out.println("File downloaded successfully.");
+            log.info("File:{} downloaded successfully.", file.getName());
         } else {
-            System.out.println("Error: HTTP response code " + responseCode);
+            log.error("Error: HTTP response code {} ",responseCode);
         }
         httpConn.disconnect();
     }

@@ -27,34 +27,24 @@ export function getRequestBodyJson(obj) {
   return JSON.stringify(obj)
 }
 
-export async function fetchFluxData(uri, callback) {
+export async function fetchFluxData(uri, callback, signal) {
   try {
-    const response = await fetch(uri)
+    const response = await fetch(uri, {signal});
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     // console.log(response)
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
-    let buffer = ''
     while (true) {
       const {done, value} = await reader.read()
       if (done) {
         break
       }
-      buffer += decoder.decode(value)
-
-      const lines = buffer.split('\n')
-      buffer = lines.pop()
-
-      for (const line of lines) {
-        if (line.trim() !== '') {
-          const data = line.replace('data:', '')
-          console.log('Received data:', data)
-          if (callback) {
-            callback(data);
-          }
-        }
+      const chunk = decoder.decode(value);
+      const data = chunk.replace('data:', '')
+      if (callback) {
+        callback(data);
       }
     }
   } catch (error) {

@@ -24,7 +24,12 @@
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
               <el-form-item label="模型文件列表">
-                <span v-html="props.row.files"></span>
+                <!--                <span v-html="props.row.files"></span>-->
+                <ul>
+                  <li v-for="(item, index) in props.row.files" :key="index">{{ item.fileName }} &nbsp;&nbsp;&nbsp;&nbsp;
+                    {{ item.percent }} &nbsp;&nbsp;&nbsp;&nbsp; <el-button type="text" size="small" @click="delFile(item.id)">删除</el-button>
+                  </li>
+                </ul>
               </el-form-item>
               <el-form-item label="存储目录">
                 <span>{{ props.row.saveDir }}</span>
@@ -142,6 +147,7 @@ export default {
   name: 'mgn',
   data() {
     return {
+      fluxCache: new Map(),
       model: {},
       multipleSelection: [],
       showSubmit: true,
@@ -180,6 +186,19 @@ export default {
     this.getTableData()
   },
   methods: {
+    delFile(id) {
+      this.$http
+        .delete('/api/mgn/del-file/' + id)
+        .then(res => {
+          if (res.success === true) {
+            this.$message({
+              message: '已删除',
+              type: 'success'
+            })
+            this.getTableData()
+          }
+        })
+    },
     resetDialog() {
       this.modelForm = {
         downloadPlatform: 'modelscope',
@@ -229,21 +248,22 @@ export default {
       })
     },
     expandChange(row) {
-      this.$http.get('/api/mgn/list-dl-file?modelId=' + row.id).then(res => {
-        if (res.success === true) {
-          let line = this.tableData.find(item => item.id == row.id)
-          line.files = ''
-          res.data.forEach((item, index) => {
-            line.files += item.fileName + '<span id="' + item.id + '"> &nbsp;&nbsp;&nbsp;&nbsp;0%</span><br>';
-            setTimeout(() => {
-              fetchFluxData('/api/mgn/dl-percent?fileId=' + item.id, (content) => {
-                document.getElementById(item.id).innerHTML = ' &nbsp;&nbsp;&nbsp;&nbsp;' + content
-              })
-            }, 100)
-          })
-          // line.files = res.data
-        }
-      })
+      if (!row.files) {
+        this.$http.get('/api/mgn/list-dl-file?modelId=' + row.id).then(res => {
+          if (res.success === true) {
+            let line = this.tableData.find(item => item.id === row.id)
+            line.files = res.data
+            line.files.forEach((item, index) => {
+              if (item.percent.indexOf('100.00%') < 0) {
+                fetchFluxData('/api/mgn/dl-percent?fileId=' + item.id, (res) => {
+                  item.percent = res
+                  console.log(res, res.length)
+                });
+              }
+            })
+          }
+        });
+      }
     },
     handleSelectionChange(val) {
       this.multipleSelection = val
@@ -258,19 +278,15 @@ export default {
         }))
           .then(res => {
             if (res.success === true) {
-              this.$message({
-                message: row.name + '开始下载',
-                type: "success"
-              })
-              fetchFluxData('/api/mgn/dl?repo=' + this.modelForm.repo + '&filename=' + row.name, (percent) => {
-                if (percent === '100.00%') {
-                  this.$notify({
-                    title: '成功',
-                    message: row.name + '下载完成',
-                    type: 'success'
-                  });
-                }
-              })
+              this.$http.get('/api/mgn/dl?repo=' + this.modelForm.repo + '&filename=' + row.name)
+                .then(res => {
+                  if (res.success === true) {
+                    this.$message({
+                      message: row.name + '开始下载',
+                      type: "success"
+                    })
+                  }
+                })
             }
           })
       } else {
@@ -283,20 +299,15 @@ export default {
             fileSize: item.size,
           })).then(res => {
             if (res.success === true) {
-              this.$message({
-                message: item.name + '开始下载',
-                type: "success"
-              })
-
-              fetchFluxData('/api/mgn/dl?repo=' + this.modelForm.repo + '&filename=' + item.name, (percent) => {
-                if (percent === '100.00%') {
-                  this.$notify({
-                    title: '成功',
-                    message: item.name + '下载完成',
-                    type: 'success'
-                  });
-                }
-              })
+              this.$http.get('/api/mgn/dl?repo=' + this.modelForm.repo + '&filename=' + item.name)
+                .then(res => {
+                  if (res.success === true) {
+                    this.$message({
+                      message: item.name + '开始下载',
+                      type: "success"
+                    })
+                  }
+                })
             }
           })
         })
@@ -332,9 +343,10 @@ export default {
     },
     getTableData() {
       this.$http.get('/api/mgn/list?page=' + this.currentPage + '&limit=' + this.pageSize + '&search=' + this.formInline.search).then(res => {
-        this.tableData = res.data.records
-        this.total = res.data.total
-
+        if (res.success === true) {
+          this.tableData = res.data.records;
+          this.total = res.data.total
+        }
       })
     },
     handleSizeChange(pageSize) {
@@ -351,12 +363,12 @@ export default {
 
 <style>
 .demo-table-expand {
-  font-size: 0px;
+  font-size: 0;
 }
 
 .demo-table-expand label {
   width: 150px;
-  padding: 10px;
+  margin-left: 10px;
   color: #99a9bf;
 }
 

@@ -47,6 +47,7 @@ axios.interceptors.response.use(config => {
   })
   if (error.message === 'Request failed with status code 401') {
     sessionStorage.removeItem("login")
+    sessionStorage.removeItem("menu-active-path")
     router.replace({
       path: '/login'
     })

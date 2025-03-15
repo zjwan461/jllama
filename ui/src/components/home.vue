@@ -4,7 +4,7 @@
       <!-- 头部导航区域 -->
       <div>
         <img
-          src="../assets/ollama.png"
+          src="../assets/logo.png"
           width="30"
           alt
         >
@@ -13,15 +13,15 @@
       <el-dropdown @command="handleCommand">
         <div class="el-dropdown-link">
           <img
-            src="../assets/ollama.png"
+            src="../assets/logo.png"
             alt
             width="30"
           >
-          <i class="el-icon-arrow-down el-icon--right" />
+          <i class="el-icon-arrow-down el-icon--right"/>
         </div>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item command="aboutme">
-            关于我
+          <el-dropdown-item command="setting">
+            设置
           </el-dropdown-item>
           <el-dropdown-item
             divided
@@ -60,7 +60,7 @@
           :default-active="active"
           @select="handleSelect"
         >
-          <el-menu-item index="/home" >
+          <el-menu-item index="/home">
             <i class="el-icon-s-home"></i>
             <span slot="title">系统监控</span>
           </el-menu-item>
@@ -70,7 +70,7 @@
             :index="item.href"
           >
             <template slot="title">
-              <i :class="item.icon" />
+              <i :class="item.icon"/>
               <span>{{ item.title }}</span>
             </template>
           </el-menu-item>
@@ -78,7 +78,7 @@
       </el-aside>
       <el-container>
         <el-main>
-          <router-view />
+          <router-view/>
         </el-main>
         <el-footer>
           <span>&copy;jllama</span>
@@ -101,7 +101,7 @@ export default {
   created() {
     this.getAppInfo()
     this.getMenuTree()
-    this.active = window.sessionStorage.getItem('menu-active-path')
+    this.active = window.sessionStorage.getItem('menu-active-path') ? window.sessionStorage.getItem('menu-active-path') : '/home'
   },
   methods: {
     handleSelect(index, indexPath) {
@@ -113,9 +113,9 @@ export default {
       sessionStorage.getItem("appInfo")
     },
     handleCommand(command) {
-      if (command === 'aboutme') {
-        this.$router.push({ path: '/aboutme' })
-      } else {
+      if (command === 'setting') {
+        this.$router.push({path: '/setting'})
+      } else if (command === 'logout') {
         this.$confirm('您确定要退出吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -157,7 +157,10 @@ export default {
     },
     logout() {
       window.sessionStorage.clear()
-      this.$http.get('/api/auth/logout', (res) => { console.log })
+      this.$http.get('/api/auth/logout', (res) => {
+        sessionStorage.removeItem("login")
+        sessionStorage.removeItem("menu-active-path")
+      })
       this.$router.push('/')
     },
     // 点击按钮，切换菜单折叠与展开
