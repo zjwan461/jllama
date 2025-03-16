@@ -25,7 +25,7 @@ public class ScriptRunner {
 
     public enum SCRIPT_TYPE {
         BASH("/bin/bash"),
-        PYTHON("C:\\Users\\test\\anaconda3\\python"),
+        PYTHON("python3"),
         BAT("cmd.exe", "/c");
 
         private final String[] executor;

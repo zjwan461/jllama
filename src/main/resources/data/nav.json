@@ -1,14 +1,14 @@
 [
   {
     "id": 1,
-    "title": "模型监控",
-    "icon": "el-icon-s-home",
+    "title": "模型进程",
+    "icon": "el-icon-connection",
     "href": "/watch"
   },
   {
     "id": 2,
     "title": "模型管理",
-    "icon": "el-icon-s-home",
+    "icon": "el-icon-sold-out",
     "href": "/mgn"
   },
   {
