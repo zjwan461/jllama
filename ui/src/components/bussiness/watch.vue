@@ -11,7 +11,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getTableData">查询</el-button>
-          <el-button type="success" @click="create">新增</el-button>
+          <el-button type="success" @click="addNew">新增</el-button>
         </el-form-item>
       </el-form>
       <el-table
@@ -20,13 +20,74 @@
         style="width: 100%"
       >
         <el-table-column
-          prop="name"
-          label="模型名称"
-          width="180">
+          prop="modelName"
+          label="模型名称">
         </el-table-column>
-
+        <el-table-column
+          prop="cppDir"
+          label="执行目录">
+        </el-table-column>
+        <el-table-column
+          prop="command"
+          label="command">
+        </el-table-column>
+        <el-table-column
+          prop="args"
+          label="运行参数">
+        </el-table-column>
+        <el-table-column
+          fixed="right"
+          label="操作"
+          width="200">
+          <template slot-scope="scope">
+            <el-button @click="log(scope.row, scope.$index)" type="success" size="small">查看日志</el-button>
+            <el-button @click="stop(scope.row, scope.$index)" type="primary" size="small">停止</el-button>
+            <el-button @click="webui(scope.row, scope.$index)" type="primary" size="small">webui</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog title="创建服务进程"
+               :visible.sync="showDialog"
+               :close-on-press-escape=false
+               :close-on-click-modal=false
+               :destroy-on-close=true
+               width="600px"
+               @close="resetDialog"
+    >
+      <el-form :model="modelForm" :rules="rules" ref="modelForm">
+        <el-form-item label="模型" label-width="120px" prop="modelId">
+          <el-select v-model="modelForm.modelId" placeholder="模型" @change="modelChange">
+            <el-option v-for="item in modelList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="文件名" label-width="120px" prop="fileId">
+          <el-select v-model="modelForm.fileId" placeholder="文件名">
+            <el-option v-for="item in fileList" :key="item.id" :label="item.fileName" :value="item.id"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="端口" label-width="120px" prop="port">
+          <el-input
+            type="number"
+            placeholder="请输入端口"
+            v-model="modelForm.port"
+            maxlength="5"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="命令" label-width="120px" prop="command">
+          <el-select v-model="modelForm.command" placeholder="命令">
+            <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="exec('modelForm')">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -34,22 +95,99 @@
 export default {
   name: 'watch',
   data() {
+    const validatePort = (rule, value, callback) => {
+      if (value < 1 || value > 65535) {
+        callback(new Error('请输入1~65535的端口值'))
+      } else {
+        callback()
+      }
+    }
     return {
+      showDialog: false,
+      modelForm: {
+        modelId: '',
+        fileId: '',
+        port: 8000
+      },
+      modelList: [],
+      fileList: [],
+      commandList: [],
+      rules: {
+        modelId: [
+          {required: true, message: '请输入模型名称', trigger: 'blur'}
+        ],
+        fileId: [
+          {required: true, message: '请输入文件名', trigger: 'blur'}
+        ],
+        port: [
+          {required: true, message: '请输入端口', trigger: 'blur'},
+          {validator: validatePort, trigger: 'blur'}
+        ],
+        command: [
+          {required: true, message: '请输入命令', trigger: 'blur'}
+        ],
+      },
       formInline: {
         search: ''
       },
       tableData: [],
+      currentPage: 1,
+      pageSize: 10
     }
   },
   created() {
-
+    this.getModelList()
+    this.getTableData()
+    this.getCommandList()
   },
   methods: {
+    modelChange(modelId) {
+      this.getFileList(modelId)
+    },
+    resetDialog() {
+      this.showDialog = false
+      this.modelForm = {
+        modelId: '',
+        fileId: '',
+        port: 8000
+      }
+    },
+    addNew() {
+      this.showDialog = true
+    },
+    exec(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          alert(JSON.stringify(this.modelForm))
+        }
+      })
+    },
     getTableData() {
       this.$http.get('/api/process/list?page=' + this.currentPage + '&limit=' + this.pageSize + '&search=' + this.formInline.search).then(res => {
         if (res.success === true) {
-          this.tableData = res.data.records;
+          this.tableData = res.data.records
           this.total = res.data.total
+        }
+      })
+    },
+    getModelList() {
+      this.$http.get('/api/mgn/list-model').then(res => {
+        if (res.success === true) {
+          this.modelList = res.data
+        }
+      })
+    },
+    getFileList(modelId) {
+      this.$http.get('/api/mgn/list-download-file?modelId=' + modelId).then(res => {
+        if (res.success === true) {
+          this.fileList = res.data
+        }
+      })
+    },
+    getCommandList() {
+      this.$http.get('/api/process/list-command').then(res => {
+        if (res.success === true) {
+          this.commandList = res.data
         }
       })
     }

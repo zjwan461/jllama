@@ -3,6 +3,7 @@ package com.itsu.oa.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
@@ -225,5 +226,20 @@ public class ModelMgnController {
             });
 
         });
+    }
+
+
+    @Auth
+    @GetMapping("/list-model")
+    public R listModelInfo() {
+        List<Model> modelList = modelService.list();
+        return R.success(modelList);
+    }
+
+    @Auth
+    @GetMapping("/list-download-file")
+    public R listFileInfo(Long modelId) {
+        List<FileDownload> fileDownloadList = fileDownloadMapper.selectList(new QueryWrapper<FileDownload>().eq("model_id", modelId));
+        return R.success(fileDownloadList);
     }
 }

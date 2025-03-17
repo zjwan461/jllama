@@ -12,10 +12,12 @@ import com.itsu.oa.core.mvc.Auth;
 import com.itsu.oa.core.mvc.ServletContextHelper;
 import com.itsu.oa.entity.User;
 import com.itsu.oa.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
+@Slf4j
 @RequestMapping("/api/auth")
 @RestController
 public class AuthController {
@@ -43,9 +45,19 @@ public class AuthController {
         return R.success();
     }
 
+    @Auth
     @GetMapping("/logout")
     public R logout() {
+    try {
+        // 清除用户登录信息并使会话失效
+        ServletContextHelper.getSession().removeAttribute(AuthFilter.LOGIN_USER_KEY);
         ServletContextHelper.getSession().invalidate();
-        return R.success();
+        return R.success("用户已成功登出");
+    } catch (Exception e) {
+        log.error(e.getMessage(), e);
+        // 增加异常处理，确保即使会话已失效也能正常返回
+        return R.success("用户已登出");
     }
+}
+
 }

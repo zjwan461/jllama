@@ -5,9 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -40,9 +39,13 @@ public class LlamaCppRunner {
 
     public static class LlamaCommandResp {
 
+        private String modelName;
+
         private String commandScheduleKey;
 
         private Process process;
+
+        private Date createTime;
 
         public String getCommandScheduleKey() {
             return commandScheduleKey;
@@ -59,10 +62,26 @@ public class LlamaCppRunner {
         public void setProcess(Process process) {
             this.process = process;
         }
+
+        public Date getCreateTime() {
+            return createTime;
+        }
+
+        public void setCreateTime(Date createTime) {
+            this.createTime = createTime;
+        }
+
+        public String getModelName() {
+            return modelName;
+        }
+
+        public void setModelName(String modelName) {
+            this.modelName = modelName;
+        }
     }
 
-    public Future<LlamaCommandResp> run(String cppDir, LlamaCommand command, String... args) {
-        String scheduleKey = generateScheduleKey(cppDir, command.getCommand(), args);
+    public Future<LlamaCommandResp> run(String modelName, String cppDir, LlamaCommand command, String... args) {
+        String scheduleKey = generateScheduleKey(modelName, cppDir, command.getCommand(), args);
         if (this.futures.containsKey(scheduleKey)) {
             log.info("当前脚本：{}运行中", scheduleKey);
             return this.futures.get(scheduleKey);
@@ -70,6 +89,7 @@ public class LlamaCppRunner {
 
         Future<LlamaCommandResp> future = threadPool.submit(() -> {
             LlamaCommandResp llamaCommandResp = new LlamaCommandResp();
+            llamaCommandResp.setModelName(modelName);
             llamaCommandResp.setCommandScheduleKey(scheduleKey);
             try {
                 List<String> commandList = new ArrayList<>();
@@ -106,7 +126,7 @@ public class LlamaCppRunner {
             return llamaCommandResp;
         });
 
-        futures.put(generateScheduleKey(cppDir, command.getCommand(), args), future);
+        futures.put(generateScheduleKey(modelName, cppDir, command.getCommand(), args), future);
         return future;
     }
 
@@ -125,8 +145,8 @@ public class LlamaCppRunner {
         }
     }
 
-    public String generateScheduleKey(String cppDir, String command, String... args) {
-        return cppDir + ":" + command + ":" + Arrays.toString(args);
+    public String generateScheduleKey(String modelName, String cppDir, String command, String... args) {
+        return modelName + ":" + cppDir + ":" + command + ":" + Arrays.toString(args);
     }
 
 
@@ -167,7 +187,7 @@ public class LlamaCppRunner {
         threadPoolTaskExecutor.setQueueCapacity(10000);
         threadPoolTaskExecutor.initialize();
         LlamaCppRunner llamaCppRunner = new LlamaCppRunner(threadPoolTaskExecutor);
-        Future<LlamaCommandResp> future = llamaCppRunner.run("E:\\workspaces\\java\\jllama\\llama\\llama-b4893-bin-win-avx-x64", LlamaCommand.LLAMA_SERVER, "--model", "D:\\models\\modelScope\\unsloth\\DeepSeek-R1-Distill-Qwen-1.5B-GGUF\\DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf", "--port", "8000", "--log-file", "1.log");
+        Future<LlamaCommandResp> future = llamaCppRunner.run("unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "E:\\workspaces\\java\\jllama\\llama\\llama-b4893-bin-win-avx-x64", LlamaCommand.LLAMA_SERVER, "--model", "D:\\models\\modelScope\\unsloth\\DeepSeek-R1-Distill-Qwen-1.5B-GGUF\\DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf", "--port", "8000", "--log-file", "1.log");
         LlamaCommandResp llamaCommandResp = future.get();
         TimeUnit.MINUTES.sleep(2);
 //        Process process = llamaCommandResp.getProcess();

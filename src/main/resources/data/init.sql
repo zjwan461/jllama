@@ -51,5 +51,21 @@ create table if not exists file_download
     primary key (id)
 );
 
+create table if not exists llama_exec_his
+(
+    id                bigint unsigned not null,
+    model_id          bigint unsigned not null,
+    model_name        varchar(50)     not null,
+    file_id           bigint unsigned not null,
+    file_path         varchar(255)    not null,
+    file_name         varchar(50)     not null,
+    llama_cpp_dir     varchar(255)    not null,
+    llama_cpp_command varchar(50)     not null,
+    llama_cpp_args    varchar(255)    null,
+    create_time       datetime,
+    update_time       datetime,
+    primary key (id)
+)
+
 
 
