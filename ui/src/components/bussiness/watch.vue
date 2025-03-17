@@ -67,6 +67,11 @@
             <el-option v-for="item in fileList" :key="item.id" :label="item.fileName" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="命令" label-width="120px" prop="command">
+          <el-select v-model="modelForm.command" placeholder="命令">
+            <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="端口" label-width="120px" prop="port">
           <el-input
             type="number"
@@ -77,10 +82,8 @@
           >
           </el-input>
         </el-form-item>
-        <el-form-item label="命令" label-width="120px" prop="command">
-          <el-select v-model="modelForm.command" placeholder="命令">
-            <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
-          </el-select>
+        <el-form-item label="其他参数" label-width="120px" prop="args">
+          <el-input type="textarea" v-model="modelForm.args"></el-input>
         </el-form-item>
       </el-form>
 
