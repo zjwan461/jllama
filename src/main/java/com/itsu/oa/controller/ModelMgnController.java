@@ -242,4 +242,6 @@ public class ModelMgnController {
         List<FileDownload> fileDownloadList = fileDownloadService.list(new QueryWrapper<FileDownload>().eq("model_id", modelId));
         return R.success(fileDownloadList);
     }
+
+
 }

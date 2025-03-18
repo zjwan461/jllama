@@ -11,5 +11,6 @@ public class SysInfo extends BaseEntity {
 
     private String osArch;
 
+    private String gpuPlatform;
 
 }

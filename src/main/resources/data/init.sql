@@ -1,10 +1,11 @@
 create table if not exists sys_info
 (
-    id          bigint unsigned not null,
-    platform    varchar(50)     not null,
-    os_arch     varchar(50)     not null,
-    create_time datetime,
-    update_time datetime,
+    id           bigint unsigned not null,
+    platform     varchar(50)     not null,
+    os_arch      varchar(50)     not null,
+    gpu_platform varchar(50)     null,
+    create_time  datetime,
+    update_time  datetime,
     primary key (id)
 );
 
@@ -64,6 +65,7 @@ create table if not exists llama_exec_his
     llama_cpp_args    varchar(1000)   null,
     status            int unsigned    not null default 0 comment '0 for not start, 1 for start',
     pid               varchar(50)     null comment '执行llama.cpp进程的pid',
+    log_file_path     varchar(255)    null comment '执行llama.cpp进程日志文件目录',
     create_time       datetime,
     update_time       datetime,
     primary key (id)

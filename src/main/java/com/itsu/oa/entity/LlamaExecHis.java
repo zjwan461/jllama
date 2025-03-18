@@ -15,6 +15,7 @@ public class LlamaExecHis extends BaseEntity {
     private String llamaCppDir;
     private String llamaCppCommand;
     private String llamaCppArgs;
+    private String logFilePath;
     private int status;
     private String pid;
 }

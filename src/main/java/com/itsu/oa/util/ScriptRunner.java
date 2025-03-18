@@ -5,9 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -24,7 +21,7 @@ public class ScriptRunner {
     }
 
     public enum SCRIPT_TYPE {
-        BASH("/bin/bash"),
+        BASH("bash"),
         PYTHON("python3"),
         BAT("cmd.exe", "/c");
 
@@ -44,6 +41,7 @@ public class ScriptRunner {
         private String script;
         private SCRIPT_TYPE scriptType;
         private String[] args;
+        private Process process;
 
         public int getCode() {
             return code;
@@ -78,6 +76,14 @@ public class ScriptRunner {
         }
 
 
+        public Process getProcess() {
+            return process;
+        }
+
+        public void setProcess(Process process) {
+            this.process = process;
+        }
+
         @Override
         public String toString() {
             return "ScriptResp{" +
@@ -85,6 +91,7 @@ public class ScriptRunner {
                     ", script='" + script + '\'' +
                     ", scriptType=" + scriptType +
                     ", args=" + Arrays.toString(args) +
+                    ", process=" + process +
                     '}';
         }
     }
@@ -112,29 +119,14 @@ public class ScriptRunner {
                 ProcessBuilder processBuilder = new ProcessBuilder(commandList);
                 // 启动进程
                 Process process = processBuilder.start();
+                scriptResp.setProcess(process);
+//                // 获取脚本执行的输出流
+//                BufferedReader infoReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-                // 获取脚本执行的输出流
-                BufferedReader infoReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-                int len;
-                char[] cache = new char[1024];
-                while ((len = infoReader.read(cache)) != -1) {
-                    String tmp = new String(cache, 0, len);
-                    log.info("script output:{}", tmp);
-                }
-
-                // 等待脚本执行完成并获取返回值
-                int exitCode = process.waitFor();
-                System.out.println("脚本执行完成，返回值: " + exitCode);
-                scriptResp.setCode(exitCode);
-                if (exitCode != 0) {
-                    String error;
-                    while ((error = errorReader.readLine()) != null) {
-                        log.error("script output:{}", error);
-                    }
-                }
-            } catch (IOException | InterruptedException e) {
+//                scriptResp.setInfoReader(infoReader);
+//                scriptResp.setErrorReader(errorReader);
+            } catch (Exception e) {
                 log.error(e.getMessage());
                 scriptResp.setCode(-1);
             }
@@ -193,7 +185,8 @@ public class ScriptRunner {
         ScriptRunner scriptRunner = new ScriptRunner(threadPoolTaskExecutor);
 //        for (int i = 0; i < 2; i++) {
 
-        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
+//        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
+        Future<ScriptResp> future = scriptRunner.runScript(System.getProperty("user.dir") + "/scripts/cuda-version.bat", SCRIPT_TYPE.BASH);
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\test.bat", SCRIPT_TYPE.BAT, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
 //        TimeUnit.SECONDS.sleep(3);
 

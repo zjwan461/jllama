@@ -13,6 +13,13 @@ public class JllamaConfigProperties {
 
     private Model model;
 
+    private String llamaCpuDir;
+
+    private String llamaLogDir;
+
+    private Gpu gpu;
+
+
     @Data
     public static class Auth {
         private String ignorePaths;
@@ -24,5 +31,11 @@ public class JllamaConfigProperties {
         private String primaryStage = "modelScope";
         private String modelScopeFileListUriPrefix = "https://modelscope.cn/api/v1/models";
         private String modelScopeFileDownloadUriPrefix = "https://modelscope.cn/models";
+    }
+
+    @Data
+    public static class Gpu {
+        private boolean enable;
+        private String llamaDir;
     }
 }

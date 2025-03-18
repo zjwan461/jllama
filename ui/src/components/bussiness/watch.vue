@@ -68,8 +68,8 @@
             <el-option v-for="item in fileList" :key="item.id" :label="item.fileName" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="命令" label-width="80px" prop="command">
-          <el-select v-model="modelForm.command" placeholder="命令">
+        <el-form-item label="命令" label-width="80px" prop="llamaCommand">
+          <el-select v-model="modelForm.llamaCommand" placeholder="命令">
             <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
           </el-select>
         </el-form-item>
@@ -131,6 +131,8 @@
 </template>
 
 <script>
+import { getRequestBodyJson } from '@/common/common'
+
 export default {
   name: 'watch',
   data() {
@@ -162,7 +164,7 @@ export default {
           {required: true, message: '请输入端口', trigger: 'blur'},
           {validator: validatePort, trigger: 'blur'}
         ],
-        command: [
+        llamaCommand: [
           {required: true, message: '请输入命令', trigger: 'blur'}
         ],
       },
@@ -200,7 +202,13 @@ export default {
     exec(form) {
       this.$refs[form].validate((valid) => {
         if (valid) {
-          alert(JSON.stringify(this.modelForm))
+          this.$http.post('/api/process/create', getRequestBodyJson(this.modelForm)).then(res => {
+            if (res.success === true) {
+              this.$message.success('创建成功')
+              this.resetDialog()
+              this.getTableData()
+            }
+          })
         }
       })
     },

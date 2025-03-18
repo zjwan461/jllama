@@ -53,7 +53,7 @@ axios.interceptors.response.use(config => {
     })
   }
 })
-axios.defaults.timeout = 5000;// 默认超时时间
+axios.defaults.timeout = 60000// 默认超时时间
 Vue.prototype.$http = axios
 Vue.config.productionTip = false
 

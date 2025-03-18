@@ -1,7 +1,9 @@
 package com.itsu.oa;
 
+import com.itsu.oa.core.sys.Platform;
 import com.itsu.oa.domain.model.ModelFile;
 import com.itsu.oa.service.ModelDownload;
+import com.itsu.oa.util.CudaUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -14,6 +16,9 @@ class JllamaApplicationTests {
     @Resource
     private ModelDownload modelDownload;
 
+    @Resource
+    private CudaUtil cudaUtil;
+
     @Test
     void test1() {
         List<ModelFile> list = modelDownload.getFileList("unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "master", "");
@@ -22,4 +27,9 @@ class JllamaApplicationTests {
         }
     }
 
+    @Test
+    public void test2() {
+        boolean isCudaAvailable = cudaUtil.isCudaAvailable(Platform.WINDOWS);
+        System.out.println(isCudaAvailable);
+    }
 }

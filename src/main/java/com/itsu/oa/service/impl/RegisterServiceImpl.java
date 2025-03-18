@@ -3,12 +3,14 @@ package com.itsu.oa.service.impl;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.system.SystemUtil;
 import com.itsu.oa.controller.req.RegisterReq;
+import com.itsu.oa.core.sys.GpuPlatform;
 import com.itsu.oa.core.sys.Platform;
 import com.itsu.oa.entity.SysInfo;
 import com.itsu.oa.entity.User;
 import com.itsu.oa.mapper.SysInfoMapper;
 import com.itsu.oa.mapper.UserMapper;
 import com.itsu.oa.service.RegisterService;
+import com.itsu.oa.util.CudaUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,9 @@ public class RegisterServiceImpl implements RegisterService {
 
     @Resource
     private SysInfoMapper sysInfoMapper;
+
+    @Resource
+    private CudaUtil cudaUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -44,6 +49,20 @@ public class RegisterServiceImpl implements RegisterService {
         sysInfo.setOsArch(arch);
         sysInfo.setCreateTime(new Date());
         sysInfo.setUpdateTime(new Date());
+
+        if (platform == Platform.WINDOWS) {
+            if (cudaUtil.isCudaAvailable(platform)) {
+                sysInfo.setGpuPlatform(GpuPlatform.CUDA.name());
+            } else {
+                sysInfo.setGpuPlatform(GpuPlatform.CPU.name());
+            }
+        } else if (platform == Platform.LINUX || platform == Platform.MAC) {
+            if (cudaUtil.isCudaAvailable(platform)) {
+                sysInfo.setGpuPlatform(GpuPlatform.CUDA.name());
+            } else {
+                sysInfo.setGpuPlatform(GpuPlatform.CPU.name());
+            }
+        }
         sysInfoMapper.insert(sysInfo);
     }
 }

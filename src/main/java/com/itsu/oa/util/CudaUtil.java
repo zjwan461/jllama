@@ -1,32 +1,38 @@
 package com.itsu.oa.util;
 
-import jcuda.driver.JCudaDriver;
+import com.itsu.oa.core.sys.Platform;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+import java.util.concurrent.Future;
+
+@Component
+@Slf4j
 public class CudaUtil {
 
-    public static boolean isCuda() {
-        int result = -1;
-        try {
-            result = JCudaDriver.cuInit(0);
-        } catch (Throwable e) {
-//            log.warn("not cuda env, detail: {}", e.getMessage());
-            e.printStackTrace();
+    @Resource
+    private ScriptRunner scriptRunner;
+
+    public boolean isCudaAvailable(Platform platform) {
+        String cudaVersionScript = "";
+        ScriptRunner.SCRIPT_TYPE scriptType = null;
+        if (platform == Platform.WINDOWS) {
+            cudaVersionScript = "cuda-version.bat";
+            scriptType = ScriptRunner.SCRIPT_TYPE.BAT;
+        } else if (platform == Platform.LINUX || platform == Platform.MAC) {
+            cudaVersionScript = "cuda-version.sh";
+            scriptType = ScriptRunner.SCRIPT_TYPE.BASH;
         }
-        return result == 0;
-    }
-
-    public static String cudaVersion() {
-        int[] driverVersion = new int[1];
-        JCudaDriver.cuDriverGetVersion(driverVersion);
-        int majorDriver = driverVersion[0] / 1000;
-        int minorDriver = (driverVersion[0] % 1000) / 10;
-//        log.info("CUDA 驱动版本: " + majorDriver + "." + minorDriver);
-        System.out.println("CUDA 驱动版本: " + majorDriver + "." + minorDriver);
-        return majorDriver + "." + minorDriver;
-    }
-
-    public static void main(String[] args) {
-        isCuda();
-        cudaVersion();
+        // Check if CUDA is available on the system
+        Future<ScriptRunner.ScriptResp> future = scriptRunner.runScript(System.getProperty("user.dir") + "/scripts/" + cudaVersionScript,
+                scriptType);
+        try {
+            ScriptRunner.ScriptResp scriptResp = future.get();
+            return scriptResp.getProcess().waitFor() == 0;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return false;
     }
 }
