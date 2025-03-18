@@ -61,7 +61,9 @@ create table if not exists llama_exec_his
     file_name         varchar(50)     not null,
     llama_cpp_dir     varchar(255)    not null,
     llama_cpp_command varchar(50)     not null,
-    llama_cpp_args    varchar(255)    null,
+    llama_cpp_args    varchar(1000)   null,
+    status            int unsigned    not null default 0 comment '0 for not start, 1 for start',
+    pid               varchar(50)     null comment '执行llama.cpp进程的pid',
     create_time       datetime,
     update_time       datetime,
     primary key (id)

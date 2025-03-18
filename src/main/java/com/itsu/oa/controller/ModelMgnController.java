@@ -18,7 +18,7 @@ import com.itsu.oa.domain.model.ModelFile;
 import com.itsu.oa.entity.BaseEntity;
 import com.itsu.oa.entity.FileDownload;
 import com.itsu.oa.entity.Model;
-import com.itsu.oa.mapper.FileDownloadMapper;
+import com.itsu.oa.service.FileDownloadService;
 import com.itsu.oa.service.ModelDownload;
 import com.itsu.oa.service.ModelService;
 import org.springframework.http.MediaType;
@@ -45,7 +45,7 @@ public class ModelMgnController {
     private ModelService modelService;
 
     @Resource
-    private FileDownloadMapper fileDownloadMapper;
+    private FileDownloadService fileDownloadService;
 
     @Resource
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -85,14 +85,14 @@ public class ModelMgnController {
     public R delete(@PathVariable("id") Long id, @PathVariable("delFile") boolean delFile) {
         modelService.removeById(id);
         if (delFile) {
-            List<FileDownload> files = fileDownloadMapper.selectList((Wrappers.lambdaQuery(FileDownload.class)
+            List<FileDownload> files = fileDownloadService.list((Wrappers.lambdaQuery(FileDownload.class)
                     .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, id)));
             files.forEach(x -> {
                 File file = new File(x.getFilePath() + "/" + x.getFileName());
                 if (file.exists()) {
                     FileUtil.del(file);
                 }
-                fileDownloadMapper.deleteById(x.getId());
+                fileDownloadService.removeById(x.getId());
             });
         }
         return R.success();
@@ -101,11 +101,11 @@ public class ModelMgnController {
     @Auth
     @DeleteMapping("/del-file/{id}")
     public R deleteFile(@PathVariable("id") Long id) {
-        FileDownload fileDownload = fileDownloadMapper.selectById(id);
+        FileDownload fileDownload = fileDownloadService.getById(id);
         if (fileDownload != null) {
             File file = new File(fileDownload.getFilePath(), fileDownload.getFileName());
             FileUtil.del(file);
-            fileDownloadMapper.deleteById(id);
+            fileDownloadService.removeById(id);
         }
         return R.success();
     }
@@ -118,7 +118,7 @@ public class ModelMgnController {
             throw new JException("非法的模型ID:" + fileDownloadReq.getModelId());
         }
 
-        List<FileDownload> exists = fileDownloadMapper.selectList(Wrappers.lambdaQuery(FileDownload.class)
+        List<FileDownload> exists = fileDownloadService.list(Wrappers.lambdaQuery(FileDownload.class)
                 .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, model.getId()));
         boolean neverDl = exists.stream().noneMatch(x -> x.getFileName().equals(fileDownloadReq.getFileName()));
         if (neverDl) {
@@ -130,7 +130,7 @@ public class ModelMgnController {
             fileDownload.setFilePath(jllamaConfigProperties.getModel().getSaveDir() + "/" + model.getDownloadPlatform() + "/" + model.getRepo());
             fileDownload.setCreateTime(new Date());
             fileDownload.setUpdateTime(new Date());
-            fileDownloadMapper.insert(fileDownload);
+            fileDownloadService.save(fileDownload);
         }
         return R.success();
     }
@@ -178,7 +178,7 @@ public class ModelMgnController {
     @Auth
     @GetMapping(value = "/list-dl-file")
     public R listDownloadFiles(Long modelId) {
-        List<FileDownload> list = fileDownloadMapper.selectList(Wrappers.lambdaQuery(FileDownload.class)
+        List<FileDownload> list = fileDownloadService.list(Wrappers.lambdaQuery(FileDownload.class)
                 .eq((SFunction<FileDownload, Long>) FileDownload::getModelId, modelId));
         list.forEach(x -> {
             File file = new File(x.getFilePath(), x.getFileName());
@@ -194,7 +194,7 @@ public class ModelMgnController {
     @Auth
     @GetMapping(value = "/dl-percent", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<String> getDlFilePercent(String fileId) {
-        FileDownload fileDownload = fileDownloadMapper.selectById(fileId);
+        FileDownload fileDownload = fileDownloadService.getById(fileId);
         if (fileDownload == null) {
             return null;
         }
@@ -239,7 +239,7 @@ public class ModelMgnController {
     @Auth
     @GetMapping("/list-download-file")
     public R listFileInfo(Long modelId) {
-        List<FileDownload> fileDownloadList = fileDownloadMapper.selectList(new QueryWrapper<FileDownload>().eq("model_id", modelId));
+        List<FileDownload> fileDownloadList = fileDownloadService.list(new QueryWrapper<FileDownload>().eq("model_id", modelId));
         return R.success(fileDownloadList);
     }
 }

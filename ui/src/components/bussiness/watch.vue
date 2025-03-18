@@ -12,6 +12,7 @@
         <el-form-item>
           <el-button type="primary" @click="getTableData">查询</el-button>
           <el-button type="success" @click="addNew">新增</el-button>
+          <el-button type="info" @click="history">历史</el-button>
         </el-form-item>
       </el-form>
       <el-table
@@ -53,36 +54,71 @@
                :close-on-press-escape=false
                :close-on-click-modal=false
                :destroy-on-close=true
-               width="600px"
+               width="700px"
                @close="resetDialog"
     >
       <el-form :model="modelForm" :rules="rules" ref="modelForm">
-        <el-form-item label="模型" label-width="120px" prop="modelId">
+        <el-form-item label="模型" label-width="80px" prop="modelId">
           <el-select v-model="modelForm.modelId" placeholder="模型" @change="modelChange">
             <el-option v-for="item in modelList" :key="item.id" :label="item.name" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="文件名" label-width="120px" prop="fileId">
+        <el-form-item label="文件名" label-width="80px" prop="fileId">
           <el-select v-model="modelForm.fileId" placeholder="文件名">
             <el-option v-for="item in fileList" :key="item.id" :label="item.fileName" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="命令" label-width="120px" prop="command">
+        <el-form-item label="命令" label-width="80px" prop="command">
           <el-select v-model="modelForm.command" placeholder="命令">
             <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="端口" label-width="120px" prop="port">
+        <el-form-item label="端口" label-width="80px" prop="port">
           <el-input
             type="number"
             placeholder="请输入端口"
             v-model="modelForm.port"
-            maxlength="5"
             show-word-limit
           >
           </el-input>
         </el-form-item>
-        <el-form-item label="其他参数" label-width="120px" prop="args">
+        <el-form-item label="-ngl" label-width="80px" prop="ngl">
+          <el-input
+            type="number"
+            placeholder="存储在 VRAM 中的层数,通常数值越大性能越好,但是过大也会导致显存不足"
+            v-model="modelForm.ngl"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="-t" label-width="80px" prop="threads">
+          <el-input
+            type="number"
+            placeholder="生成期间使用的线程数（默认值：-1）"
+            v-model="modelForm.threads"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="-c" label-width="80px" prop="ctxSize">
+          <el-input
+            type="number"
+            placeholder="提示上下文的大小（默认值：4096，0 = 从模型加载）"
+            v-model="modelForm.ctxSize"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="-np" label-width="80px" prop="parallel">
+          <el-input
+            type="number"
+            placeholder="要解码的并行序列数（默认值：1）"
+            v-model="modelForm.parallel"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="其他参数" label-width="80px" prop="args">
           <el-input type="textarea" v-model="modelForm.args"></el-input>
         </el-form-item>
       </el-form>
@@ -110,7 +146,7 @@ export default {
       modelForm: {
         modelId: '',
         fileId: '',
-        port: 8000
+        port: 8000,
       },
       modelList: [],
       fileList: [],
@@ -144,6 +180,9 @@ export default {
     this.getCommandList()
   },
   methods: {
+    history() {
+      this.$router.push('/history')
+    },
     modelChange(modelId) {
       this.getFileList(modelId)
     },
