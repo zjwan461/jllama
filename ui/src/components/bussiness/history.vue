@@ -28,6 +28,7 @@
           label="执行目录">
         </el-table-column>
         <el-table-column
+          width="120px"
           prop="llamaCppCommand"
           label="Command">
         </el-table-column>

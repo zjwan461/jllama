@@ -1,6 +1,7 @@
 package com.itsu.oa.util;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -153,7 +154,7 @@ public class LlamaCppRunner {
     }
 
     public String generateScheduleKey(String modelName, String cppDir, String command, String... args) {
-        return modelName + "::" + cppDir + "::" + command + "::" + Arrays.toString(args);
+        return modelName + "::" + cppDir + "::" + command + "::" + JSONUtil.toJsonStr(args);
     }
 
 

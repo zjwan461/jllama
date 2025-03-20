@@ -29,6 +29,7 @@
           label="执行目录">
         </el-table-column>
         <el-table-column
+          width="120px"
           prop="command"
           label="command">
         </el-table-column>
@@ -134,7 +135,7 @@
 </template>
 
 <script>
-import { getRequestBodyJson } from '@/common/common'
+import {getRequestBodyJson} from '@/common/common'
 
 export default {
   name: 'watch',

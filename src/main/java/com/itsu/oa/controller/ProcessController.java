@@ -174,10 +174,9 @@ public class ProcessController {
                 log.info("Exit Code: {}", exitCode);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.err.println("Thread interrupted");
+                log.error("Thread interrupted", e);
             } finally {
-                process.destroy();
-                future.cancel(true);
+                llamaCppRunner.stop(llamaCommandResp.getCommandScheduleKey(), true);
             }
         });
         return R.success();
@@ -232,5 +231,30 @@ public class ProcessController {
         } else {
             throw new JException("日志文件不存在");
         }
+    }
+
+    @Auth
+    @GetMapping("/log")
+    public R log(String logFilePath, int index, int line) {
+        if (!FileUtil.exist(logFilePath)) {
+            throw new JException("日志文件不存在");
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(logFilePath))) {
+            String currentLine = "";
+            int currentIndex = 1;
+            while ((currentLine = br.readLine()) != null) {
+                if (currentIndex >= index && currentIndex <= (index + line)) {
+                    stringBuilder.append(currentLine).append("\n");
+                } else if (currentIndex > (index + line)) {
+                    break;
+                }
+                currentIndex++;
+            }
+        } catch (IOException e) {
+            throw new JException("读取文件失败");
+        }
+
+        return R.success(stringBuilder.toString());
     }
 }
