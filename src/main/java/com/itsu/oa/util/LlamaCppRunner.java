@@ -1,6 +1,7 @@
 package com.itsu.oa.util;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -89,7 +91,8 @@ public class LlamaCppRunner {
     }
 
     public Future<LlamaCommandResp> run(String modelName, String cppDir, LlamaCommand command, String... args) {
-        String scheduleKey = generateScheduleKey(modelName, cppDir, command.getCommand(), args);
+        String execId = IdUtil.fastSimpleUUID();
+        String scheduleKey = generateScheduleKey(execId, modelName, cppDir, command.getCommand(), args);
         if (this.futures.containsKey(scheduleKey)) {
             log.info("当前脚本：{}运行中", scheduleKey);
             return this.futures.get(scheduleKey);
@@ -134,7 +137,7 @@ public class LlamaCppRunner {
             return llamaCommandResp;
         });
 
-        futures.put(generateScheduleKey(modelName, cppDir, command.getCommand(), args), future);
+        futures.put(generateScheduleKey(execId, modelName, cppDir, command.getCommand(), args), future);
         return future;
     }
 
@@ -153,8 +156,12 @@ public class LlamaCppRunner {
         }
     }
 
-    public String generateScheduleKey(String modelName, String cppDir, String command, String... args) {
-        return modelName + "::" + cppDir + "::" + command + "::" + JSONUtil.toJsonStr(args);
+    public void stopById(String execId, boolean mayInterruptIfRunning) {
+        this.futures.keySet().stream().filter(x -> x.startsWith(execId)).forEach(x -> stop(x, mayInterruptIfRunning));
+    }
+
+    public String generateScheduleKey(String execId, String modelName, String cppDir, String command, String... args) {
+        return execId + "::" + modelName + "::" + cppDir + "::" + command + "::" + JSONUtil.toJsonStr(args);
     }
 
 

@@ -67,10 +67,11 @@ public class ProcessController {
                 .map(x -> {
                     Map map = new HashMap();
                     List<String> split = StrUtil.split(x, "::");
-                    map.put("modelName", split.get(0));
-                    map.put("cppDir", split.get(1));
-                    map.put("command", split.get(2));
-                    map.put("args", split.get(3));
+                    map.put("execId", split.get(0));
+                    map.put("modelName", split.get(1));
+                    map.put("cppDir", split.get(2));
+                    map.put("command", split.get(3));
+                    map.put("args", split.get(4));
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -172,7 +173,7 @@ public class ProcessController {
             try {
                 process.waitFor();
                 int exitCode = process.exitValue();
-                log.info("Exit Code: {}", exitCode);
+                log.info("process Exit Code: {}", exitCode);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("Thread interrupted", e);
@@ -225,6 +226,7 @@ public class ProcessController {
                     currentIndex++;
                 }
             } catch (IOException e) {
+                log.error("读取文件失败", e);
                 throw new JException("读取文件失败");
             }
 
@@ -253,6 +255,7 @@ public class ProcessController {
                 currentIndex++;
             }
         } catch (IOException e) {
+            log.error("读取文件失败", e);
             throw new JException("读取文件失败");
         }
 
