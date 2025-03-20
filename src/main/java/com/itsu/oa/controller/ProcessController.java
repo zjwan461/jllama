@@ -126,6 +126,7 @@ public class ProcessController {
         } else {
             entity.setLlamaCppDir(jllamaConfigProperties.getLlamaCpuDir());
         }
+        FileUtil.mkdir(jllamaConfigProperties.getLlamaLogDir());
         String logFilePath = jllamaConfigProperties.getLlamaLogDir() + "/" + newProcessReq.getLlamaCommand().getCommand() + "-" + DateUtil.current() + ".log";
         entity.setLogFilePath(logFilePath);
         StringBuilder argsBuilder = new StringBuilder();

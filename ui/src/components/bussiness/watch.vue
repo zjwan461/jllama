@@ -42,7 +42,7 @@
           label="操作"
           width="300">
           <template slot-scope="scope">
-            <el-button @click="log(scope.row, scope.$index)" type="success" size="small">查看日志</el-button>
+            <el-button @click="showLog(scope.row, scope.$index)" type="success" size="small">查看日志</el-button>
             <el-button @click="stop(scope.row, scope.$index)" type="primary" size="small">停止</el-button>
             <el-button @click="webui(scope.row, scope.$index)" type="primary" size="small">webui</el-button>
           </template>
@@ -131,11 +131,31 @@
         <el-button type="primary" @click="exec('modelForm')">确 定</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :title="log.logFilePath"
+               :visible.sync="showLogDialog"
+               :close-on-press-escape=false
+               :close-on-click-modal=false
+               :destroy-on-close=true
+               @close="resetLogDialog"
+    >
+      <el-card>
+        <div slot="header">
+          <el-button style="float: right; padding: 3px 0" type="text" @click="copyLogPath">复制文件地址</el-button>
+        </div>
+        <div style="white-space:pre-line; overflow-y: auto; height: 700px">
+          {{ log.logContent }}
+        </div>
+        <div>
+          <el-button style="float: right; padding: 3px 0" type="text" @click="loadLog(-1)">加载更多</el-button>
+        </div>
+      </el-card>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {getRequestBodyJson} from '@/common/common'
+import {copy, getRequestBodyJson} from '@/common/common'
 
 export default {
   name: 'watch',
@@ -148,6 +168,14 @@ export default {
       }
     }
     return {
+      logIndex: 1,
+      logLine: 30,
+      showLogDialog: false,
+      log: {
+        logFilePath: '',
+        logContent: '',
+        id: -1
+      },
       showDialog: false,
       modelForm: {
         modelId: '',
@@ -186,6 +214,42 @@ export default {
     this.getCommandList()
   },
   methods: {
+    copyLogPath() {
+      if (this.log.logFilePath.length > 0) {
+        copy(this.log.logFilePath)
+      }
+    },
+    resetLogDialog() {
+      this.showDialog = false
+      this.log = {
+        logFilePath: '',
+        logContent: '',
+        id: -1
+      }
+      this.logIndex = 1
+    },
+    loadLog() {
+      this.$http.get('/api/process/log?logFilePath=' + encodeURIComponent(this.log.logFilePath) + '&index=' + this.logIndex + '&line=' + this.logLine).then(res => {
+        if (res.success === true) {
+          if (res.data.length > 0) {
+            this.log.logContent += res.data
+            this.logIndex = this.logIndex + this.logLine
+          } else {
+            this.$message({
+              type: 'info',
+              message: '没有更多日志了'
+            })
+          }
+        }
+      })
+    },
+    showLog(item) {
+      this.showLogDialog = true
+      let argsArr = JSON.parse(item.args)
+      this.log.logFilePath = argsArr[argsArr.length-1]
+      this.log.id = item.id
+      this.loadLog(item.id)
+    },
     history() {
       this.$router.push('/history')
     },
