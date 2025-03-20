@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-breadcrumb separator="/">
-      <el-breadcrumb-item>模型监控</el-breadcrumb-item>
+      <el-breadcrumb-item>模型进程</el-breadcrumb-item>
     </el-breadcrumb>
 
     <el-card>
@@ -39,7 +39,7 @@
         <el-table-column
           fixed="right"
           label="操作"
-          width="200">
+          width="300">
           <template slot-scope="scope">
             <el-button @click="log(scope.row, scope.$index)" type="success" size="small">查看日志</el-button>
             <el-button @click="stop(scope.row, scope.$index)" type="primary" size="small">停止</el-button>
@@ -72,6 +72,9 @@
           <el-select v-model="modelForm.llamaCommand" placeholder="命令">
             <el-option v-for="item in commandList" :key="item" :label="item" :value="item"></el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="host" label-width="80px" prop="host">
+          <el-input type="text" v-model="modelForm.host" placeholder="host,例如：localhost,默认值：127.0.0.1"></el-input>
         </el-form-item>
         <el-form-item label="端口" label-width="80px" prop="port">
           <el-input

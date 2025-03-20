@@ -35,6 +35,13 @@ public class LlamaCppRunner {
         public String getCommand() {
             return command;
         }
+
+        public static LlamaCommand match(String command) {
+            if ("llama-server".equals(command)) {
+                return LLAMA_SERVER;
+            }
+            throw new IllegalArgumentException("No enum constant of " + command);
+        }
     }
 
     public static class LlamaCommandResp {
@@ -146,7 +153,7 @@ public class LlamaCppRunner {
     }
 
     public String generateScheduleKey(String modelName, String cppDir, String command, String... args) {
-        return modelName + ":" + cppDir + ":" + command + ":" + Arrays.toString(args);
+        return modelName + "::" + cppDir + "::" + command + "::" + Arrays.toString(args);
     }
 
 

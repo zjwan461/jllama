@@ -43,6 +43,10 @@ const routes = [{
     path: '/mgn',
     name: 'mgn',
     component: () => import('../components/bussiness/mgn.vue')
+  }, {
+    path: '/history',
+    name: 'watch',
+    component: () => import('../components/bussiness/history.vue')
   }]
 }]
 
