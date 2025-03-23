@@ -13,6 +13,7 @@ import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
 import com.itsu.oa.core.sys.GpuPlatform;
+import com.itsu.oa.core.sys.Platform;
 import com.itsu.oa.entity.*;
 import com.itsu.oa.service.FileDownloadService;
 import com.itsu.oa.service.LlamaExecHistService;
@@ -25,10 +26,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/process")
@@ -61,32 +63,32 @@ public class ProcessController {
     @Auth
     @GetMapping("/list")
     public R list(int page, int limit, String search) {
-        Set<String> runningService = llamaCppRunner.getRunningService();
-        List<Map> list = runningService.stream()
-                .filter(x -> x.contains(search))
-                .map(x -> {
-                    Map map = new HashMap();
-                    List<String> split = StrUtil.split(x, "::");
-                    map.put("execId", split.get(0));
-                    map.put("modelName", split.get(1));
-                    map.put("cppDir", split.get(2));
-                    map.put("command", split.get(3));
-                    map.put("args", split.get(4));
-                    return map;
-                })
-                .collect(Collectors.toList());
-        int total = list.size();
+        Collection<LlamaCppRunner.LlamaCommandReq> runningService = llamaCppRunner.getRunningService();
+//        List<Map> list = runningService.stream()
+//                .filter(x -> x.contains(search))
+//                .map(x -> {
+//                    Map map = new HashMap();
+//                    List<String> split = StrUtil.split(x, "::");
+//                    map.put("execId", split.get(0));
+//                    map.put("modelName", split.get(1));
+//                    map.put("cppDir", split.get(2));
+//                    map.put("command", split.get(3));
+//                    map.put("args", split.get(4));
+//                    return map;
+//                })
+//                .collect(Collectors.toList());
+        int total = runningService.size();
         int index = (page - 1) * limit;
-        List<Map> records = new ArrayList<>();
+        List<LlamaCppRunner.LlamaCommandReq> records = new ArrayList<>();
         Map data = new HashMap();
         data.put("total", total);
         data.put("current", page);
         if (index > total) {
         } else {
             if (index + limit > total) {
-                records = CollUtil.sub(list, index, total);
+                records = CollUtil.sub(runningService, index, total);
             } else {
-                records = CollUtil.sub(list, index, index + limit);
+                records = CollUtil.sub(runningService, index, index + limit);
             }
         }
         data.put("records", records);
@@ -118,14 +120,17 @@ public class ProcessController {
         entity.setFileId(fileDownload.getId());
         entity.setFileName(fileDownload.getFileName());
         entity.setFilePath(fileDownload.getFilePath());
+        String abbr = Platform.valueOf(sysInfo.getPlatform()).getAbbr();
+        String llamaCpuDir = jllamaConfigProperties.getLlamaCpuDir();
+        String llamaCpuExecDir = StrUtil.replace(llamaCpuDir, "%platform%", abbr);
         if (jllamaConfigProperties.getGpu().isEnable()) {
             if (GpuPlatform.CPU.name().equals(sysInfo.getGpuPlatform())) {
-                entity.setLlamaCppDir(jllamaConfigProperties.getLlamaCpuDir());
+                entity.setLlamaCppDir(llamaCpuExecDir);
             } else if (GpuPlatform.CUDA.name().equals(sysInfo.getGpuPlatform())) {
                 entity.setLlamaCppDir(jllamaConfigProperties.getGpu().getLlamaDir());
             }
         } else {
-            entity.setLlamaCppDir(jllamaConfigProperties.getLlamaCpuDir());
+            entity.setLlamaCppDir(llamaCpuExecDir);
         }
         FileUtil.mkdir(jllamaConfigProperties.getLlamaLogDir());
         String logFilePath = jllamaConfigProperties.getLlamaLogDir() + "/" + newProcessReq.getLlamaCommand().getCommand() + "-" + DateUtil.current() + ".log";
@@ -165,20 +170,21 @@ public class ProcessController {
         entity.setCreateTime(new Date());
         entity.setUpdateTime(new Date());
         llamaExecHistService.save(entity);
-        Future<LlamaCppRunner.LlamaCommandResp> future = llamaCppRunner.run(entity.getModelName(), entity.getLlamaCppDir(), LlamaCppRunner.LlamaCommand.match(entity.getLlamaCppCommand()),
+        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.run(entity.getModelName(), entity.getLlamaCppDir(), LlamaCppRunner.LlamaCommand.match(entity.getLlamaCppCommand()),
                 StrUtil.splitToArray(entity.getLlamaCppArgs(), " "));
+        Future<LlamaCppRunner.LlamaCommandResp> future = llamaCommandReq.getFuture();
         LlamaCppRunner.LlamaCommandResp llamaCommandResp = future.get();
         threadPoolTaskExecutor.submit(() -> {
             Process process = llamaCommandResp.getProcess();
             try {
                 process.waitFor();
                 int exitCode = process.exitValue();
-                log.info("process Exit Code: {}", exitCode);
+                log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), exitCode);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.error("Thread interrupted", e);
+                log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
             } finally {
-                llamaCppRunner.stop(llamaCommandResp.getCommandScheduleKey(), true);
+                llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
             }
         });
         return R.success();

@@ -4,8 +4,17 @@ import com.itsu.oa.core.exception.JException;
 
 public enum Platform {
 
-    WINDOWS, MAC, LINUX;
+    WINDOWS("win"), MAC("macos"), LINUX("linux");
 
+    final String abbr;
+
+    Platform(String abbr) {
+        this.abbr = abbr;
+    }
+
+    public String getAbbr() {
+        return abbr;
+    }
 
     public static Platform match(String string) {
         if (string != null && !string.isEmpty()) {

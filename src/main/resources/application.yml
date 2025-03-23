@@ -29,11 +29,11 @@ jllama:
     ignore-paths: ${spring.h2.console.path},/app/**,*.css,*.js
   model:
     save-dir: ${user.home}/.jllama/models
-  llama-cpu-dir: ${user.dir}/llama/llama-b4893-bin-win-avx-x64
+  llama-cpu-dir: ${user.dir}/llama/%platform%
   llama-log-dir: ${user.home}/.jllama/logs
   gpu:
     enable: false
-    llama-dir: ${user.dir}/llama/llama-b4893-bin-win-cu12.4-x64
+    llama-dir: #${user.dir}/llama/llama-b4893-bin-win-cu12.4-x64
 logging:
   level:
     root: info
