@@ -155,7 +155,7 @@
 </template>
 
 <script>
-import {copy, getRequestBodyJson} from '@/common/common'
+import {copy, getRequestBodyJson, getSettings} from '@/common/common'
 
 export default {
   name: 'watch',
@@ -209,6 +209,8 @@ export default {
     }
   },
   created() {
+    const settings = getSettings();
+    this.logLine = settings.logLine
     this.getModelList()
     this.getTableData()
     this.getCommandList()

@@ -71,18 +71,16 @@ create table if not exists llama_exec_his
     primary key (id)
 );
 
--- llamaCppDir:'',
---         modelSaveDir:'',
---         logSaveDir:'',
---         logLine: 50,
---         logSaveDay: 7
 create table if not exists settings
 (
+    id             char(4)           not null,
     llama_cpp_dir  varchar(1000)     not null,
     model_save_dir varchar(1000)     not null,
     log_save_dir   varchar(1000)     not null,
     log_line       int     not null default 50,
-    log_save_day   int     not null default 7
+    log_save_day   int     not null default 7,
+    gpu_flag       int     not null default 0 comment '0 for disable, 1 for enable',
+    primary key (id)
 );
 
 

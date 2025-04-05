@@ -21,7 +21,7 @@
             <el-input-number v-model="settings.logSaveDay"  placeholder=""></el-input-number>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="">提交</el-button>
+            <el-button type="primary" @click="save">提交</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import {getRequestBodyJson} from "@/common/common";
+
 export default {
   data() {
     return {
@@ -37,11 +39,32 @@ export default {
         modelSaveDir:'',
         logSaveDir:'',
         logLine: 50,
-        logSaveDay: 7
+        logSaveDay: 7,
+        gpuFlag: 0,
       }
     }
   },
+  mounted() {
+    this.getSettings();
+  },
   methods: {
+    save() {
+      this.$http.post('/api/base/update-settings', getRequestBodyJson(this.settings)).then(res => {
+        if (res.success === true) {
+          this.$message({
+            type: 'success',
+            message: '保存成功'
+          })
+        }
+      })
+    },
+    getSettings() {
+      this.$http.get('/api/base/settings').then(res => {
+        if (res.success === true) {
+          this.settings = res.data;
+        }
+      })
+    }
   },
 }
 </script>

@@ -18,9 +18,11 @@ import com.itsu.oa.domain.model.ModelFile;
 import com.itsu.oa.entity.BaseEntity;
 import com.itsu.oa.entity.FileDownload;
 import com.itsu.oa.entity.Model;
+import com.itsu.oa.entity.Settings;
 import com.itsu.oa.service.FileDownloadService;
 import com.itsu.oa.service.ModelDownload;
 import com.itsu.oa.service.ModelService;
+import com.itsu.oa.service.SettingsService;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +41,6 @@ public class ModelMgnController {
     private ModelDownload modelScopeModelDownload;
 
     @Resource
-    private JllamaConfigProperties jllamaConfigProperties;
-
-    @Resource
     private ModelService modelService;
 
     @Resource
@@ -49,6 +48,12 @@ public class ModelMgnController {
 
     @Resource
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    @Resource
+    private SettingsService settingsService;
+
+    @Resource
+    private JllamaConfigProperties jllamaConfigProperties;
 
     @Auth
     @GetMapping("/list")
@@ -73,7 +78,8 @@ public class ModelMgnController {
         }
         Model model = new Model();
         BeanUtil.copyProperties(modelReq, model);
-        model.setSaveDir(jllamaConfigProperties.getModel().getSaveDir() + "/" + modelReq.getDownloadPlatform() + "/" + model.getRepo());
+        Settings settings = settingsService.getCachedSettings();
+        model.setSaveDir(settings.getModelSaveDir() + "/" + modelReq.getDownloadPlatform() + "/" + model.getRepo());
         model.setCreateTime(new Date());
         model.setUpdateTime(new Date());
         modelService.save(model);
@@ -127,7 +133,8 @@ public class ModelMgnController {
             fileDownload.setModelName(model.getName());
             fileDownload.setFileSize(fileDownloadReq.getFileSize());
             fileDownload.setFileName(fileDownloadReq.getFileName());
-            fileDownload.setFilePath(jllamaConfigProperties.getModel().getSaveDir() + "/" + model.getDownloadPlatform() + "/" + model.getRepo());
+            Settings settings = settingsService.getCachedSettings();
+            fileDownload.setFilePath(settings.getModelSaveDir() + "/" + model.getDownloadPlatform() + "/" + model.getRepo());
             fileDownload.setCreateTime(new Date());
             fileDownload.setUpdateTime(new Date());
             fileDownloadService.save(fileDownload);

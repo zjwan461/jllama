@@ -10,9 +10,11 @@ import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
 import com.itsu.oa.core.mvc.ServletContextHelper;
+import com.itsu.oa.entity.Settings;
 import com.itsu.oa.entity.SysInfo;
 import com.itsu.oa.mapper.SysInfoMapper;
 import com.itsu.oa.service.RegisterService;
+import com.itsu.oa.service.SettingsService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,6 +29,9 @@ public class BaseController {
 
     @Resource
     private RegisterService registerService;
+
+    @Resource
+    private SettingsService settingsService;
 
     @Auth(requireLogin = false)
     @GetMapping("/sys-info")
@@ -61,5 +66,20 @@ public class BaseController {
     public R nav() {
         String navStr = ResourceUtil.readUtf8Str("classpath:/data/nav.json");
         return R.success(JSONUtil.parseArray(navStr));
+    }
+
+    @Auth
+    @GetMapping("/settings")
+    public R settings() {
+        Settings settings = settingsService.getById(Settings.DEFAULT_ID);
+        return R.success(settings);
+    }
+
+    @Auth
+    @PostMapping("/update-settings")
+    public R updateSettings(@RequestBody Settings settings) {
+        settings.setId(Settings.DEFAULT_ID);
+        settingsService.updateCachedSettings(settings);
+        return R.success();
     }
 }

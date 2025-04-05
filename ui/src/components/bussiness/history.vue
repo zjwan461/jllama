@@ -84,7 +84,7 @@
 <script>
 // import { getRequestBodyJson } from '@/common/common'
 
-import {copy} from "@/common/common";
+import {copy, getSettings} from "@/common/common";
 
 export default {
   name: 'history',
@@ -109,6 +109,8 @@ export default {
     }
   },
   created() {
+    const settings = getSettings();
+    this.logLine = settings.logLine
     this.getTableData()
   },
   methods: {

@@ -1,5 +1,7 @@
 package com.itsu.oa.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -11,9 +13,14 @@ import lombok.Data;
 @Data
 public class Settings {
 
+    public static final String DEFAULT_ID = "0000";
+
+    @TableId(type = IdType.INPUT)
+    private String id;
     private String llamaCppDir;
     private String modelSaveDir;
     private String logSaveDir;
     private int logLine;
     private int logSaveDay;
+    private int gpuFlag;
 }

@@ -8,4 +8,8 @@ import com.itsu.oa.entity.Settings;
  * @date 2025/4/5 15:47
  */
 public interface SettingsService extends IService<Settings> {
+
+    Settings getCachedSettings();
+
+    void updateCachedSettings(Settings settings);
 }

@@ -7,17 +7,15 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.itsu.oa.config.JllamaConfigProperties;
 import com.itsu.oa.controller.req.NewProcessReq;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
-import com.itsu.oa.core.sys.GpuPlatform;
-import com.itsu.oa.core.sys.Platform;
 import com.itsu.oa.entity.*;
 import com.itsu.oa.service.FileDownloadService;
 import com.itsu.oa.service.LlamaExecHistService;
 import com.itsu.oa.service.ModelService;
+import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,25 +56,12 @@ public class ProcessController {
     private SysInfo sysInfo;
 
     @Resource
-    private JllamaConfigProperties jllamaConfigProperties;
+    private SettingsService settingsService;
 
     @Auth
     @GetMapping("/list")
     public R list(int page, int limit, String search) {
         Collection<LlamaCppRunner.LlamaCommandReq> runningService = llamaCppRunner.getRunningService();
-//        List<Map> list = runningService.stream()
-//                .filter(x -> x.contains(search))
-//                .map(x -> {
-//                    Map map = new HashMap();
-//                    List<String> split = StrUtil.split(x, "::");
-//                    map.put("execId", split.get(0));
-//                    map.put("modelName", split.get(1));
-//                    map.put("cppDir", split.get(2));
-//                    map.put("command", split.get(3));
-//                    map.put("args", split.get(4));
-//                    return map;
-//                })
-//                .collect(Collectors.toList());
         int total = runningService.size();
         int index = (page - 1) * limit;
         List<LlamaCppRunner.LlamaCommandReq> records = new ArrayList<>();
@@ -120,20 +105,10 @@ public class ProcessController {
         entity.setFileId(fileDownload.getId());
         entity.setFileName(fileDownload.getFileName());
         entity.setFilePath(fileDownload.getFilePath());
-        String abbr = Platform.valueOf(sysInfo.getPlatform()).getAbbr();
-        String llamaCpuDir = jllamaConfigProperties.getLlamaCpuDir();
-        String llamaCpuExecDir = StrUtil.replace(llamaCpuDir, "%platform%", abbr);
-        if (jllamaConfigProperties.getGpu().isEnable()) {
-            if (GpuPlatform.CPU.name().equals(sysInfo.getGpuPlatform())) {
-                entity.setLlamaCppDir(llamaCpuExecDir);
-            } else if (GpuPlatform.CUDA.name().equals(sysInfo.getGpuPlatform())) {
-                entity.setLlamaCppDir(jllamaConfigProperties.getGpu().getLlamaDir());
-            }
-        } else {
-            entity.setLlamaCppDir(llamaCpuExecDir);
-        }
-        FileUtil.mkdir(jllamaConfigProperties.getLlamaLogDir());
-        String logFilePath = jllamaConfigProperties.getLlamaLogDir() + "/" + newProcessReq.getLlamaCommand().getCommand() + "-" + DateUtil.current() + ".log";
+        Settings settings = settingsService.getCachedSettings();
+        entity.setLlamaCppDir(settings.getLlamaCppDir());
+        FileUtil.mkdir(settings.getLogSaveDir());
+        String logFilePath = settings.getLogSaveDir() + "/" + newProcessReq.getLlamaCommand().getCommand() + "-" + DateUtil.current() + ".log";
         entity.setLogFilePath(logFilePath);
         StringBuilder argsBuilder = new StringBuilder();
         argsBuilder.append("--model ").append(fileDownload.getFilePath() + "/" + fileDownload.getFileName()).append(" ");

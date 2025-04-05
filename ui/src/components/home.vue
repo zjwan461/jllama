@@ -97,13 +97,20 @@ export default {
     }
   },
   created() {
+    this.getSettings()
     this.getAppInfo()
     this.getMenuTree()
     this.active = window.sessionStorage.getItem('menu-active-path') ? window.sessionStorage.getItem('menu-active-path') : '/home'
   },
   methods: {
+    getSettings() {
+      this.$http.get('/api/base/settings').then(res => {
+        if (res.success === true) {
+          sessionStorage.setItem("settings", JSON.stringify(res.data))
+        }
+      })
+    },
     handleSelect(index, indexPath) {
-      // console.log(index, indexPath)
       window.sessionStorage.setItem('menu-active-path', index)
       this.active = index
     },

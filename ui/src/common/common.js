@@ -51,3 +51,7 @@ export async function fetchFluxData(uri, callback, signal) {
     console.error('Error fetching data:', error)
   }
 }
+
+export function getSettings() {
+  return JSON.parse(sessionStorage.getItem("settings"))
+}
