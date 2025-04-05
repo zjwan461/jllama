@@ -82,4 +82,11 @@ public class BaseController {
         settingsService.updateCachedSettings(settings);
         return R.success();
     }
+
+    @Auth
+    @GetMapping("/tools-md")
+    public R toolsMd() {
+        String mdStr = ResourceUtil.readUtf8Str("classpath:/data/tools.md");
+        return R.success(mdStr);
+    }
 }
