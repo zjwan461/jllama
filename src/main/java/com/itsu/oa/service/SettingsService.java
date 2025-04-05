@@ -1,0 +1,11 @@
+package com.itsu.oa.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.itsu.oa.entity.Settings;
+
+/**
+ * @author jerry.su
+ * @date 2025/4/5 15:47
+ */
+public interface SettingsService extends IService<Settings> {
+}

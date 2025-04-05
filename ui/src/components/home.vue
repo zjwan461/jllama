@@ -69,10 +69,8 @@
             :key="item.id"
             :index="item.href"
           >
-            <template slot="title">
-              <i :class="item.icon"/>
-              <span>{{ item.title }}</span>
-            </template>
+            <i :class="item.icon"/>
+            <span>{{ item.title }}</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -81,7 +79,7 @@
           <router-view/>
         </el-main>
         <el-footer>
-          <span>&copy;jllama</span>
+          <span>&copy;Jllama</span>
         </el-footer>
       </el-container>
     </el-container>
