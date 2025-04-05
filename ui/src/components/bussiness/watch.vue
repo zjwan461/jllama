@@ -143,7 +143,7 @@
         <div slot="header">
           <el-button style="float: right; padding: 3px 0" type="text" @click="copyLogPath">复制文件地址</el-button>
         </div>
-        <div style="white-space:pre-line; overflow-y: auto; height: 700px">
+        <div ref="scrollableDiv" id="scrollableDiv" class="logDialog">
           {{ log.logContent }}
         </div>
         <div>
@@ -214,6 +214,33 @@ export default {
     this.getCommandList()
   },
   methods: {
+    webui(row, index) {
+      let argArray = JSON.parse(row.args);
+      if (argArray.length > 0) {
+        let port = 8000
+        let portIndex = argArray.findIndex(item => item.indexOf('--port') >= 0)
+        if (portIndex !== -1) {
+          port = argArray[portIndex + 1]
+        }
+        let host = '127.0.0.1'
+        let hostIndex = argArray.findIndex(item => item.indexOf('--host') >= 0)
+        if (hostIndex !== -1) {
+          host = argArray[hostIndex + 1] === '0.0.0.0' ? '127.0.0.1' : argArray[hostIndex + 1];
+        }
+        window.open('http://' + host + ':' + port + '/', '_blank')
+      }
+    },
+    stop(row, index) {
+      this.$http.get('/api/process/stop/' + row.execId).then(res => {
+        if (res.success === true) {
+          this.$message({
+            type: 'success',
+            message: '停止成功'
+          })
+          this.getTableData()
+        }
+      })
+    },
     copyLogPath() {
       if (this.log.logFilePath.length > 0) {
         copy(this.log.logFilePath)
@@ -234,6 +261,14 @@ export default {
           if (res.data.length > 0) {
             this.log.logContent += res.data
             this.logIndex = this.logIndex + this.logLine
+            setTimeout(() => {
+              if (this.$refs.scrollableDiv) {
+                this.$refs.scrollableDiv.scrollTo({
+                  top: this.$refs.scrollableDiv.scrollHeight,
+                  behavior: 'smooth'
+                });
+              }
+            }, 100)
           } else {
             this.$message({
               type: 'info',
@@ -246,7 +281,7 @@ export default {
     showLog(item) {
       this.showLogDialog = true
       let argsArr = JSON.parse(item.args)
-      this.log.logFilePath = argsArr[argsArr.length-1]
+      this.log.logFilePath = argsArr[argsArr.length - 1]
       this.log.id = item.id
       this.loadLog(item.id)
     },
@@ -314,5 +349,9 @@ export default {
 </script>
 
 <style>
-
+.logDialog {
+  white-space: pre-line;
+  overflow-y: auto;
+  height: 60vh
+}
 </style>

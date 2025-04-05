@@ -5,6 +5,7 @@ import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.itsu.oa.controller.req.LoginReq;
+import com.itsu.oa.core.event.LlammaShutdown;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.filter.AuthFilter;
 import com.itsu.oa.core.model.R;
@@ -13,6 +14,7 @@ import com.itsu.oa.core.mvc.ServletContextHelper;
 import com.itsu.oa.entity.User;
 import com.itsu.oa.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,6 +26,9 @@ public class AuthController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping("/login")
     @Auth(requireLogin = false)
@@ -49,6 +54,8 @@ public class AuthController {
     @GetMapping("/logout")
     public R logout() {
         try {
+            // 发布事件，通知所有正在运行的模型服务停止
+            applicationEventPublisher.publishEvent(new LlammaShutdown("all"));
             // 清除用户登录信息并使会话失效
             ServletContextHelper.getSession().removeAttribute(AuthFilter.LOGIN_USER_KEY);
             ServletContextHelper.getSession().invalidate();

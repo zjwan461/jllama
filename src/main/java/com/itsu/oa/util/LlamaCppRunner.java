@@ -205,10 +205,11 @@ public class LlamaCppRunner {
             try {
                 LlamaCommandResp llamaCommandResp = future.get();
                 llamaCommandResp.getProcess().destroy();
-                future.cancel(mayInterruptIfRunning);
-                this.futures.remove(execId);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                future.cancel(mayInterruptIfRunning);
+                this.futures.remove(execId);
             }
 
         }

@@ -267,4 +267,11 @@ public class ProcessController {
 
         return R.success(stringBuilder.toString());
     }
+
+    @Auth
+    @GetMapping("/stop/{execId}")
+    public R stop(@PathVariable("execId") String execId) {
+        llamaCppRunner.stop(execId, true);
+        return R.success();
+    }
 }
