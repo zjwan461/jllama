@@ -64,7 +64,7 @@
           </el-button>
         </el-form-item>
         <div style="">
-          <a href="https://gitee.com/zjwan461/jllama" target="_blank" style="color: #01AAED">
+          <a href="https://github.com/zjwan461/jllama" target="_blank" style="color: #01AAED">
             <svg t="1741331388471" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
                  p-id="5122" width="32" height="32">
               <path
