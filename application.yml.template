@@ -1,0 +1,40 @@
+server:
+  port: 21434
+spring:
+  application:
+    name: jllama
+  datasource:
+    url: jdbc:h2:file:~/.jllama/db;AUTO_SERVER=TRUE;MODE=MySQL;DB_CLOSE_ON_EXIT=TRUE;INIT=RUNSCRIPT FROM 'classpath:/data/init.sql'
+    driver-class-name: org.h2.Driver
+    username: root
+    password: root
+    type: com.zaxxer.hikari.HikariDataSource
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:/mapper/**/*.xml
+
+jllama:
+  auth:
+    ignore-paths: ${spring.h2.console.path},/app/**,*.css,*.js
+  model:
+    save-dir: ${user.home}/.jllama/models
+  llama-cpu-dir: ${user.dir}/llama/%platform%
+  llama-log-dir: ${user.home}/.jllama/logs
+  gpu:
+    enable: false
+    llama-dir: #${user.dir}/llama/llama-b4893-bin-win-cu12.4-x64
+logging:
+  level:
+    root: info
+    com.jllama: debug
