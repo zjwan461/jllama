@@ -74,7 +74,7 @@ Jllama默认不会开启GPU加速，这主要是考虑到兼容所有的个人�
 
 2. 修改LlamaCpp程序目录
 
-   你需要从https://github.com/ggml-org/llama.cpp/releases页面中下载支持你的个人电脑支持的操作系统和GPU类型的release程序包。如下图，如果你的电脑使用的是Windows操作系统且使用NVIDIA显卡。你需要下载带`win-xxx-cuxx`结尾的程序包，并确保你的电脑安装了`cuda`工具集。如果你的电脑使用的是AMD的显卡，请下载带`hip-xx-gfxxx`结尾的程序包。下载完成后，解压程序包，并将程序包目录拷贝到Jllama中即可。
+   你需要从https://github.com/ggml-org/llama.cpp/releases 页面中下载支持你的个人电脑支持的操作系统和GPU类型的release程序包。如下图，如果你的电脑使用的是Windows操作系统且使用NVIDIA显卡。你需要下载带`win-xxx-cuxx`结尾的程序包，并确保你的电脑安装了`cuda`工具集。如果你的电脑使用的是AMD的显卡，请下载带`hip-xx-gfxxx`结尾的程序包。下载完成后，解压程序包，并将程序包目录拷贝到Jllama中即可。
 
    ![image-20250406163638659](https://jerrysu232.oss-cn-shenzhen.aliyuncs.com/img/image-20250406163638659.png) 
 
