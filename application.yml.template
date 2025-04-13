@@ -26,7 +26,7 @@ mybatis-plus:
 
 jllama:
   auth:
-    ignore-paths: ${spring.h2.console.path},/app/**,*.css,*.js
+    ignore-paths: ${spring.h2.console.path},/app/**,*.css,*.js,/favicon.ico
   model:
     save-dir: ${user.home}/.jllama/models
   llama-cpu-dir: ${user.dir}/llama/%platform%
