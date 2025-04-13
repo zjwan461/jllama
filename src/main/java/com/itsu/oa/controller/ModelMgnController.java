@@ -228,8 +228,10 @@ public class ModelMgnController {
                         }
                     } catch (Exception e) {
                         fluxSink.error(e);
+                        break;
                     }
                 }
+                fluxSink.complete();
             });
 
         });

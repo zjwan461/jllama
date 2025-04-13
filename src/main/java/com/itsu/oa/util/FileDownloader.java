@@ -68,6 +68,7 @@ public class FileDownloader {
                 if (httpConn != null) {
                     httpConn.disconnect();
                 }
+                fluxSink.complete();
             }
         });
     }

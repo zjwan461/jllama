@@ -7,6 +7,8 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.itsu.oa.config.JllamaConfigProperties;
+import com.itsu.oa.core.component.MessageQueue;
+import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.domain.model.ModelFile;
 import com.itsu.oa.domain.model.ModelScopeModelFile;
@@ -19,6 +21,7 @@ import reactor.core.publisher.Flux;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +34,9 @@ public class ModelScopeModelDownload implements ModelDownload {
 
     @Resource
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    @Resource
+    private MessageQueue messageQueue;
 
     @Override
     public List<ModelFile> getFileList(String repo, String revision, String root) {
@@ -76,11 +82,23 @@ public class ModelScopeModelDownload implements ModelDownload {
         FileUtil.mkdir(modelDir);
         String fileFullPath = modelDir + "/" + filename;
         threadPoolTaskExecutor.submit(() -> {
-
+            Msg msg = new Msg();
+            msg.setTitle("AI模型下载提醒");
             try {
                 FileDownloader.downloadFile(url, fileFullPath);
+                msg.setContent(filename + "下载完成");
+                msg.setStatus(Msg.Status.success);
             } catch (IOException e) {
                 log.error(e.getMessage());
+                msg.setContent(filename + "下载失败");
+                msg.setStatus(Msg.Status.error);
+            } finally {
+                msg.setCreateTime(LocalDateTime.now());
+                try {
+                    messageQueue.put(msg);
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage());
+                }
             }
         });
     }

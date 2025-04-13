@@ -87,6 +87,8 @@
 </template>
 
 <script>
+import {fetchFluxData} from "@/common/common";
+
 export default {
   data() {
     return {
@@ -100,9 +102,22 @@ export default {
     this.getSettings()
     this.getAppInfo()
     this.getMenuTree()
-    this.active = window.sessionStorage.getItem('menu-active-path') ? window.sessionStorage.getItem('menu-active-path') : '/home'
+    this.active = window.sessionStorage.getItem('menu-active-path') ? window.sessionStorage.getItem('menu-active-path') : '/home';
+    this.getNotifications()
   },
   methods: {
+    getNotifications() {
+      fetchFluxData('/api/message', (res) => {
+        let msg = JSON.parse(res)
+        console.log(msg)
+        this.$notify({
+          title: msg.title,
+          message: msg.content,
+          type: msg.status,
+          duration: 5000
+        })
+      })
+    },
     getSettings() {
       this.$http.get('/api/base/settings').then(res => {
         if (res.success === true) {
