@@ -17,6 +17,7 @@ mkdir -p "$BUILD_DIR"
 # 构建前端项目
 if [ -d "$UI_DIR" ]; then
     cd "$UI_DIR"
+    npm install
     npm run build
     if [ -d "dist" ]; then
         cp -r dist "../$RESOURCES_DIR"
