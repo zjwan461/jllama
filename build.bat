@@ -8,6 +8,7 @@ rem 进入ui目录
 cd ui
 
 rem 运行npm构建
+call npm install
 call npm run build
 
 rem 复制dist目录到指定位置
