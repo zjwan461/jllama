@@ -47,10 +47,6 @@ const routes = [{
     path: '/history',
     name: 'watch',
     component: () => import('../components/bussiness/history.vue')
-  }, {
-    path: '/tools',
-    name: 'tools',
-    component: () => import('../components/bussiness/tools.vue')
   },{
     path: '/tools/split-merge',
     name: 'split-merge',

@@ -83,10 +83,10 @@ public class BaseController {
         return R.success();
     }
 
-    @Auth
-    @GetMapping("/tools-md")
-    public R toolsMd() {
-        String mdStr = ResourceUtil.readUtf8Str("classpath:/data/tools.md");
-        return R.success(mdStr);
-    }
+//    @Auth
+//    @GetMapping("/tools-md")
+//    public R toolsMd() {
+//        String mdStr = ResourceUtil.readUtf8Str("classpath:/data/tools.md");
+//        return R.success(mdStr);
+//    }
 }
