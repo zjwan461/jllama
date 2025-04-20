@@ -4,6 +4,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.itsu.oa.controller.req.SplitMergeReq;
+import com.itsu.oa.core.component.MessageQueue;
+import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
@@ -45,6 +47,9 @@ public class ToolsController {
 
     @Resource
     private ThreadPoolTaskExecutor threadPool;
+
+    @Resource
+    private MessageQueue messageQueue;
 
     @Auth
     @PostMapping("/split-merge")
@@ -95,19 +100,33 @@ public class ToolsController {
         if (llamaCommandReq.getFuture() != null) {
             LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
             threadPool.submit(() -> {
+                Msg msg = new Msg();
+                msg.setTitle("模型" + splitMergeReq.getOptions());
+
                 try {
                     Process process = llamaCommandResp.getProcess();
                     process.waitFor();
                     if (process.exitValue() == 0) {
+                        msg.setContent("模型" + splitMergeReq.getOptions() + "成功");
+                        msg.setStatus(Msg.Status.success);
                         log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
                     } else {
+                        msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                        msg.setStatus(Msg.Status.error);
                         log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
                     }
                 } catch (InterruptedException e) {
+                    msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                    msg.setStatus(Msg.Status.error);
                     Thread.currentThread().interrupt();
                     log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
                 } finally {
                     llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
+                    try {
+                        messageQueue.put(msg);
+                    } catch (InterruptedException e) {
+                        log.error(e.getMessage());
+                    }
                 }
             });
         }
