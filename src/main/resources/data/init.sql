@@ -83,5 +83,18 @@ create table if not exists settings
     primary key (id)
 );
 
+create table if not exists gguf_split_merge
+(
+    id             bigint unsigned   not null,
+    `option`       varchar(50)       not null,
+    `input`        varchar(1000)     not null,
+    `output`       varchar(1000)     not null,
+    split_option   varchar(50)       null,
+    split_param    varchar(50)       null,
+    create_time    datetime,
+    primary key (id)
+);
+
+
 
 

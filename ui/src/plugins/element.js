@@ -39,7 +39,7 @@ import {
   DatePicker,
   InputNumber,
   Loading,
-  Notification
+  Notification, RadioGroup
 
 } from 'element-ui'
 
@@ -83,3 +83,4 @@ Vue.use(Radio)
 Vue.use(DatePicker)
 Vue.use(InputNumber)
 Vue.use(Loading)
+Vue.use(RadioGroup)

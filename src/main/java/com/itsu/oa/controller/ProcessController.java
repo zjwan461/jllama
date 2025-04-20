@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/process")
@@ -61,7 +62,10 @@ public class ProcessController {
     @Auth
     @GetMapping("/list")
     public R list(int page, int limit, String search) {
-        Collection<LlamaCppRunner.LlamaCommandReq> runningService = llamaCppRunner.getRunningService();
+        Collection<LlamaCppRunner.LlamaCommandReq> runningService = llamaCppRunner.getRunningService()
+                .stream()
+                .filter(x -> x.getCommand().equals("llama-server") && x.getModelName().contains(search))
+                .collect(Collectors.toList());
         int total = runningService.size();
         int index = (page - 1) * limit;
         List<LlamaCppRunner.LlamaCommandReq> records = new ArrayList<>();

@@ -65,6 +65,7 @@
             <span slot="title">系统监控</span>
           </el-menu-item>
           <el-menu-item
+            v-if="item.children===undefined"
             v-for="(item) in menuData"
             :key="item.id"
             :index="item.href"
@@ -72,6 +73,27 @@
             <i :class="item.icon"/>
             <span>{{ item.title }}</span>
           </el-menu-item>
+          <el-submenu
+            v-if="item.children"
+            v-for="(item) in menuData"
+            :key="item.id"
+            :index="item.id + ''"
+          >
+            <template slot="title">
+              <i :class="item.icon" />
+              <span>{{ item.title }}</span>
+            </template>
+            <el-menu-item
+              v-for="(child) in item.children"
+              :key="child.id"
+              :index="child.href"
+            >
+              <template slot="title">
+                <i :class="child.icon" />
+                <span>{{ child.title }}</span>
+              </template>
+            </el-menu-item>
+          </el-submenu>
         </el-menu>
       </el-aside>
       <el-container>

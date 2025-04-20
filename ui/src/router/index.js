@@ -51,7 +51,12 @@ const routes = [{
     path: '/tools',
     name: 'tools',
     component: () => import('../components/bussiness/tools.vue')
-  }]
+  },{
+    path: '/tools/split-merge',
+    name: 'split-merge',
+    component: () => import('../components/bussiness/tools/split-merge.vue')
+  }
+  ]
 }]
 
 const router = new VueRouter({

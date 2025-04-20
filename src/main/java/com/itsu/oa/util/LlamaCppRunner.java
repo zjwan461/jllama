@@ -1,7 +1,9 @@
 package com.itsu.oa.util;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.itsu.oa.core.exception.JException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -25,7 +27,8 @@ public class LlamaCppRunner {
 
     public enum LlamaCommand {
 
-        LLAMA_SERVER("llama-server");
+        LLAMA_SERVER("llama-server"),
+        LLAMA_GGUF_SPLIT("llama-gguf-split");
 
         private final String command;
 
@@ -40,6 +43,8 @@ public class LlamaCppRunner {
         public static LlamaCommand match(String command) {
             if ("llama-server".equals(command)) {
                 return LLAMA_SERVER;
+            } else if ("llama-gguf-split".equals(command)) {
+                return LLAMA_GGUF_SPLIT;
             }
             throw new IllegalArgumentException("No enum constant of " + command);
         }
@@ -143,6 +148,52 @@ public class LlamaCppRunner {
         public void setModelName(String modelName) {
             this.modelName = modelName;
         }
+    }
+
+    public LlamaCommandReq runSplit(String cppDir, String option, String splitOption, String splitParam, String input, String output, boolean async) {
+        String execId = IdUtil.fastSimpleUUID();
+        LlamaCommandReq llamaCommandReq = new LlamaCommandReq();
+        llamaCommandReq.setExecId(execId);
+        llamaCommandReq.setCommand(LlamaCommand.LLAMA_GGUF_SPLIT.getCommand());
+        llamaCommandReq.setCppDir(cppDir);
+        LlamaCommandResp llamaCommandResp = new LlamaCommandResp();
+        llamaCommandResp.setExecId(execId);
+        llamaCommandResp.setCreateTime(new Date());
+        List<String> commandList = new ArrayList<>();
+        commandList.add(cppDir + "/" + LlamaCommand.LLAMA_GGUF_SPLIT.getCommand());
+        commandList.add("--" + option);
+        if (StrUtil.isNotBlank(splitOption) && StrUtil.isNotBlank(splitParam)) {
+            commandList.add("--" + splitOption);
+            commandList.add(splitParam);
+        }
+        commandList.add(input);
+        commandList.add(output);
+        if (async) {
+            Future<LlamaCommandResp> future = threadPool.submit(() -> {
+                try {
+                    ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+                    // 启动进程
+                    Process process = processBuilder.start();
+
+                    llamaCommandResp.setProcess(process);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+                return llamaCommandResp;
+            });
+            llamaCommandReq.setFuture(future);
+            futures.put(execId, llamaCommandReq);
+        } else {
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+                // 启动进程
+                processBuilder.start();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new JException("拆分/合并操作失败");
+            }
+        }
+        return llamaCommandReq;
     }
 
     public LlamaCommandReq run(String modelName, String cppDir, LlamaCommand command, String... args) {
