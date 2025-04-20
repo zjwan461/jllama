@@ -7,6 +7,8 @@ import com.itsu.oa.controller.req.SplitMergeReq;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
+import com.itsu.oa.entity.GgufSplitMerge;
+import com.itsu.oa.service.GgufSplitMergeService;
 import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +35,9 @@ public class ToolsController {
 
     @Resource
     private SettingsService settingsService;
+
+    @Resource
+    private GgufSplitMergeService ggufSplitMergeService;
 
     @Auth
     @PostMapping("/split-merge")
@@ -77,7 +82,15 @@ public class ToolsController {
             throw new JException("非法的拆分参数：" + splitOption);
 
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
-        llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
 
+        llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
+        GgufSplitMerge entity = new GgufSplitMerge();
+        entity.setInput(splitMergeReq.getInput());
+        entity.setOutput(splitMergeReq.getOutput());
+        entity.setOption(splitMergeReq.getOptions());
+        entity.setSplitOption(splitMergeReq.getSplitOption());
+        entity.setSplitParam(splitMergeReq.getSplitParam());
+        entity.setAsync(splitMergeReq.isAsync());
+        ggufSplitMergeService.save(entity);
     }
 }

@@ -91,7 +91,9 @@ create table if not exists gguf_split_merge
     `output`       varchar(1000)     not null,
     split_option   varchar(50)       null,
     split_param    varchar(50)       null,
+    async          int               not null default 1,
     create_time    datetime,
+    update_time    datetime,
     primary key (id)
 );
 

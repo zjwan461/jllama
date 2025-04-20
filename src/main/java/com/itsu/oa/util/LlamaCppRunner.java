@@ -8,7 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -187,13 +190,46 @@ public class LlamaCppRunner {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(commandList);
                 // 启动进程
-                processBuilder.start();
-            } catch (IOException e) {
+                Process process = processBuilder.start();
+                logProcessOutput(process, LlamaCommand.LLAMA_GGUF_SPLIT);
+                int result = process.waitFor();
+                if (result != 0) {
+                    log.error("llama-split 执行失败,return code={}", result);
+                    throw new JException("llama-split 执行失败, return code=" + result);
+                }
+            } catch (JException e) {
+                throw e;
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 throw new JException("拆分/合并操作失败");
             }
         }
         return llamaCommandReq;
+    }
+
+    public void logProcessOutput(Process process, LlamaCommand command) {
+        InputStream is = process.getInputStream();
+        InputStream es = process.getErrorStream();
+        threadPool.submit(() -> {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                String line = "";
+                while ((line = br.readLine()) != null) {
+                    log.info("{}:{}", command.getCommand(), line);
+                }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+        threadPool.submit(() -> {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(es))) {
+                String line = "";
+                while ((line = br.readLine()) != null) {
+                    log.error("{}:{}", command.getCommand(), line);
+                }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        });
     }
 
     public LlamaCommandReq run(String modelName, String cppDir, LlamaCommand command, String... args) {

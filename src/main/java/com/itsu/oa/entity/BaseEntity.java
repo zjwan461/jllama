@@ -19,4 +19,9 @@ public class BaseEntity implements Serializable {
     private Date createTime;
 
     private Date updateTime;
+
+    public BaseEntity() {
+        this.createTime = new Date();
+        this.updateTime = new Date();
+    }
 }
