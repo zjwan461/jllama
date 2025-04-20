@@ -11,6 +11,8 @@ import com.itsu.oa.entity.GgufSplitMerge;
 import com.itsu.oa.service.GgufSplitMergeService;
 import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author jerry.su
@@ -25,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @RestController
 @RequestMapping("/api/tools")
+@Slf4j
 public class ToolsController {
 
     @Resource
@@ -39,17 +43,21 @@ public class ToolsController {
     @Resource
     private GgufSplitMergeService ggufSplitMergeService;
 
+    @Resource
+    private ThreadPoolTaskExecutor threadPool;
+
     @Auth
     @PostMapping("/split-merge")
-    public R splitMerge(@RequestBody SplitMergeReq splitMergeReq) {
+    public R splitMerge(@RequestBody SplitMergeReq splitMergeReq) throws Exception {
         String options = splitMergeReq.getOptions();
         if ("split".equals(options)) {
             doSplit(splitMergeReq);
         }
+        //todo merge
         return R.success();
     }
 
-    private void doSplit(SplitMergeReq splitMergeReq) {
+    private void doSplit(SplitMergeReq splitMergeReq) throws ExecutionException, InterruptedException {
         String input = splitMergeReq.getInput();
         String splitOption = splitMergeReq.getSplitOption();
         String splitParam = splitMergeReq.getSplitParam();
@@ -83,7 +91,26 @@ public class ToolsController {
 
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
 
-        llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
+        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
+        if (llamaCommandReq.getFuture() != null) {
+            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
+            threadPool.submit(() -> {
+                try {
+                    Process process = llamaCommandResp.getProcess();
+                    process.waitFor();
+                    if (process.exitValue() == 0) {
+                        log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
+                    } else {
+                        log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
+                } finally {
+                    llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
+                }
+            });
+        }
         GgufSplitMerge entity = new GgufSplitMerge();
         entity.setInput(splitMergeReq.getInput());
         entity.setOutput(splitMergeReq.getOutput());
