@@ -15,6 +15,6 @@ public class ModelScopeModelFile implements ModelFile {
     private String Path;
     private String Revision;
     private String Sha256;
-    private int Size;
+    private long Size;
     private String Type;
 }
