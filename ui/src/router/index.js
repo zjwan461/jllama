@@ -51,6 +51,10 @@ const routes = [{
     path: '/tools/split-merge',
     name: 'split-merge',
     component: () => import('../components/bussiness/tools/split-merge.vue')
+  },{
+    path: '/tools/quantization',
+    name: 'quantization',
+    component: () => import('../components/bussiness/tools/quantization.vue')
   }
   ]
 }]

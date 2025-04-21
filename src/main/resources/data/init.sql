@@ -97,6 +97,17 @@ create table if not exists gguf_split_merge
     primary key (id)
 );
 
+create table if not exists quantize
+(
+    id             bigint unsigned   not null,
+    `input`        varchar(1000)     not null,
+    `output`       varchar(1000)     not null,
+    param          varchar(50)       not null comment '量化精度',
+    async          int               not null default 1,
+    create_time    datetime,
+    update_time    datetime,
+    primary key (id)
+);
 
 
 

@@ -31,7 +31,8 @@ public class LlamaCppRunner {
     public enum LlamaCommand {
 
         LLAMA_SERVER("llama-server"),
-        LLAMA_GGUF_SPLIT("llama-gguf-split");
+        LLAMA_GGUF_SPLIT("llama-gguf-split"),
+        LLAMA_QUANTIZE("llama-quantize");
 
         private final String command;
 
@@ -48,6 +49,8 @@ public class LlamaCppRunner {
                 return LLAMA_SERVER;
             } else if ("llama-gguf-split".equals(command)) {
                 return LLAMA_GGUF_SPLIT;
+            } else if ("llama-quantize".equals(command)) {
+                return LLAMA_QUANTIZE;
             }
             throw new IllegalArgumentException("No enum constant of " + command);
         }
@@ -151,6 +154,57 @@ public class LlamaCppRunner {
         public void setModelName(String modelName) {
             this.modelName = modelName;
         }
+    }
+
+    public LlamaCommandReq runQuantize(String cppDir, String input, String output, String quantizeParam, boolean async) {
+        String execId = IdUtil.fastSimpleUUID();
+        LlamaCommandReq llamaCommandReq = new LlamaCommandReq();
+        llamaCommandReq.setExecId(execId);
+        llamaCommandReq.setCommand(LlamaCommand.LLAMA_QUANTIZE.getCommand());
+        llamaCommandReq.setCppDir(cppDir);
+        LlamaCommandResp llamaCommandResp = new LlamaCommandResp();
+        llamaCommandResp.setExecId(execId);
+        llamaCommandResp.setCreateTime(new Date());
+        List<String> commandList = new ArrayList<>();
+        commandList.add(cppDir + "/" + LlamaCommand.LLAMA_QUANTIZE.getCommand());
+        commandList.add(input);
+        commandList.add(output);
+        commandList.add(quantizeParam);
+        if (async) {
+            Future<LlamaCommandResp> future = threadPool.submit(() -> {
+                try {
+                    ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+                    // 启动进程
+                    Process process = processBuilder.start();
+
+                    llamaCommandResp.setProcess(process);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+                return llamaCommandResp;
+            });
+            llamaCommandReq.setFuture(future);
+            futures.put(execId, llamaCommandReq);
+        } else {
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+                // 启动进程
+                Process process = processBuilder.start();
+                logProcessOutput(process, LlamaCommand.LLAMA_QUANTIZE);
+                int result = process.waitFor();
+                if (result != 0) {
+                    log.error("llama-quantize 执行失败,return code={}", result);
+                    throw new JException("llama-quantize 模型量化执行失败, return code=" + result);
+                }
+            } catch (JException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new JException("模型量化操作失败");
+            }
+        }
+
+        return llamaCommandReq;
     }
 
     public LlamaCommandReq runSplit(String cppDir, String option, String splitOption, String splitParam, String input, String output, boolean async) {

@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.itsu.oa.config.JllamaConfigProperties;
+import com.itsu.oa.controller.req.QuantizeReq;
 import com.itsu.oa.controller.req.SplitMergeReq;
 import com.itsu.oa.core.component.MessageQueue;
 import com.itsu.oa.core.component.Msg;
@@ -15,7 +17,9 @@ import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
 import com.itsu.oa.entity.BaseEntity;
 import com.itsu.oa.entity.GgufSplitMerge;
+import com.itsu.oa.entity.Quantize;
 import com.itsu.oa.service.GgufSplitMergeService;
+import com.itsu.oa.service.QuantizeService;
 import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +53,53 @@ public class ToolsController {
     private GgufSplitMergeService ggufSplitMergeService;
 
     @Resource
+    private QuantizeService quantizeService;
+
+    @Resource
     private ThreadPoolTaskExecutor threadPool;
 
     @Resource
     private MessageQueue messageQueue;
+
+    @Resource
+    private JllamaConfigProperties jllamaConfigProperties;
+
+    @Auth
+    @GetMapping("/list-quantize-param")
+    public R listQuantizeParam() {
+        return R.success(jllamaConfigProperties.getQuantize().getSupportedTypes());
+    }
+
+    /**
+     * llama-quantize <原模型目录> <转换后的模型保存路径> <量化位数>
+     *
+     * @return
+     */
+    @Auth
+    @PostMapping("/llama-quantize")
+    public R llamaQuantize(@RequestBody QuantizeReq quantizeReq) throws Exception {
+        if (StrUtil.isBlank(quantizeReq.getOriginModel())) {
+            throw new JException("量化源文件不能为空");
+        }
+        if (StrUtil.isBlank(quantizeReq.getQuantizeParam())) {
+            throw new JException("量化精度参数不能为空");
+        }
+        if (!jllamaConfigProperties.getQuantize().getSupportedTypes().contains(quantizeReq.getQuantizeParam())) {
+            throw new JException("不支持的量化精度参数：" + quantizeReq.getQuantizeParam());
+        }
+        if (StrUtil.isBlank(quantizeReq.getOutputModel())) {
+            throw new JException("保存目录不能为空");
+        }
+
+        String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
+        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runQuantize(llamaCppDir, quantizeReq.getOriginModel(), quantizeReq.getOutputModel(), quantizeReq.getQuantizeParam(), quantizeReq.isAsync());
+        if (llamaCommandReq.getFuture() != null) {
+            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
+            handleAsync("模型量化", llamaCommandResp, llamaCommandReq);
+        }
+        saveDB(quantizeReq);
+        return R.success();
+    }
 
     @Auth
     @GetMapping("/list-split-merge")
@@ -82,7 +129,7 @@ public class ToolsController {
         if (StrUtil.isBlank(input)) {
             throw new JException("非法的合并参数,input源文件不能为空");
         }
-        if (!StrUtil.contains(input, "of")) {
+        if (!StrUtil.contains(input, "-of-") || !"gguf".equals(FileUtil.getSuffix(input))) {
             throw new JException("非法的合并参数,input源文件格式不正确");
         }
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
@@ -90,7 +137,7 @@ public class ToolsController {
 
         if (llamaCommandReq.getFuture() != null) {
             LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            handleAsync(splitMergeReq, llamaCommandResp, llamaCommandReq);
+            handleAsync(splitMergeReq.getOptions(), llamaCommandResp, llamaCommandReq);
         }
         saveDB(splitMergeReq);
     }
@@ -132,9 +179,18 @@ public class ToolsController {
         LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
         if (llamaCommandReq.getFuture() != null) {
             LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            handleAsync(splitMergeReq, llamaCommandResp, llamaCommandReq);
+            handleAsync(splitMergeReq.getOptions(), llamaCommandResp, llamaCommandReq);
         }
         saveDB(splitMergeReq);
+    }
+
+    private void saveDB(QuantizeReq req) {
+        Quantize quantize = new Quantize();
+        quantize.setAsync(req.isAsync());
+        quantize.setParam(req.getQuantizeParam());
+        quantize.setInput(req.getOriginModel());
+        quantize.setOutput(req.getOutputModel());
+        quantizeService.save(quantize);
     }
 
     private void saveDB(SplitMergeReq splitMergeReq) {
@@ -148,25 +204,25 @@ public class ToolsController {
         ggufSplitMergeService.save(entity);
     }
 
-    private void handleAsync(SplitMergeReq splitMergeReq, LlamaCppRunner.LlamaCommandResp llamaCommandResp, LlamaCppRunner.LlamaCommandReq llamaCommandReq) {
+    private void handleAsync(String optionsDetail, LlamaCppRunner.LlamaCommandResp llamaCommandResp, LlamaCppRunner.LlamaCommandReq llamaCommandReq) {
         threadPool.submit(() -> {
             Msg msg = new Msg();
-            msg.setTitle("模型" + splitMergeReq.getOptions());
+            msg.setTitle("模型" + optionsDetail);
 
             try {
                 Process process = llamaCommandResp.getProcess();
                 process.waitFor();
                 if (process.exitValue() == 0) {
-                    msg.setContent("模型" + splitMergeReq.getOptions() + "成功");
+                    msg.setContent("模型" + optionsDetail + "成功");
                     msg.setStatus(Msg.Status.success);
                     log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
                 } else {
-                    msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                    msg.setContent("模型" + optionsDetail + "失败");
                     msg.setStatus(Msg.Status.error);
                     log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
                 }
             } catch (InterruptedException e) {
-                msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                msg.setContent("模型" + optionsDetail + "失败");
                 msg.setStatus(Msg.Status.error);
                 Thread.currentThread().interrupt();
                 log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
