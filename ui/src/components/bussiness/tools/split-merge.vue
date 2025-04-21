@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import { copy, getRequestBodyJson } from "@/common/common";
+import { getRequestBodyJson } from "@/common/common";
 
 export default {
   name: "split-merge",
@@ -107,9 +107,9 @@ export default {
       },
       rules: {
         options: [
-          { required: true, message: '请输入模型名称', trigger: 'blur' }
+          { required: true, message: '请输入参数选项', trigger: 'blur' }
         ], output: [
-          { required: true, message: '请输入模型名称', trigger: 'blur' }
+          { required: true, message: '请输入output文件地址', trigger: 'blur' }
         ],
       },
     }
