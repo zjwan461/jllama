@@ -89,7 +89,7 @@ public class ProcessController {
     @Auth
     @GetMapping("/list-command")
     public R listCommand() {
-        return R.success(LlamaCppRunner.LlamaCommand.values());
+        return R.success(Collections.singletonList(LlamaCppRunner.LlamaCommand.LLAMA_SERVER));
     }
 
     @Auth

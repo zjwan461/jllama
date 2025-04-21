@@ -3,25 +3,28 @@ package com.itsu.oa.controller;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itsu.oa.controller.req.SplitMergeReq;
 import com.itsu.oa.core.component.MessageQueue;
 import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
+import com.itsu.oa.entity.BaseEntity;
 import com.itsu.oa.entity.GgufSplitMerge;
 import com.itsu.oa.service.GgufSplitMergeService;
 import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -52,14 +55,44 @@ public class ToolsController {
     private MessageQueue messageQueue;
 
     @Auth
+    @GetMapping("/list-split-merge")
+    public R list(int page, int limit) {
+        IPage<GgufSplitMerge> resPage = ggufSplitMergeService.page(new Page<>(page, limit),
+                Wrappers.lambdaQuery(GgufSplitMerge.class)
+                        .orderByDesc((SFunction<GgufSplitMerge, Date>) BaseEntity::getCreateTime));
+        return R.success(resPage);
+    }
+
+    @Auth
     @PostMapping("/split-merge")
     public R splitMerge(@RequestBody SplitMergeReq splitMergeReq) throws Exception {
         String options = splitMergeReq.getOptions();
         if ("split".equals(options)) {
             doSplit(splitMergeReq);
-        }
-        //todo merge
+        } else if ("merge".equals(options)) {
+            doMerge(splitMergeReq);
+        } else
+            throw new JException("不合法的请求参数options=" + options);
         return R.success();
+    }
+
+    private void doMerge(SplitMergeReq splitMergeReq) throws ExecutionException, InterruptedException {
+        String input = splitMergeReq.getInput();
+        String output = splitMergeReq.getOutput();
+        if (StrUtil.isBlank(input)) {
+            throw new JException("非法的合并参数,input源文件不能为空");
+        }
+        if (!StrUtil.contains(input, "of")) {
+            throw new JException("非法的合并参数,input源文件格式不正确");
+        }
+        String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
+        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), null, null, input, output, splitMergeReq.isAsync());
+
+        if (llamaCommandReq.getFuture() != null) {
+            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
+            handleAsync(splitMergeReq, llamaCommandResp, llamaCommandReq);
+        }
+        saveDB(splitMergeReq);
     }
 
     private void doSplit(SplitMergeReq splitMergeReq) throws ExecutionException, InterruptedException {
@@ -99,37 +132,12 @@ public class ToolsController {
         LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
         if (llamaCommandReq.getFuture() != null) {
             LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            threadPool.submit(() -> {
-                Msg msg = new Msg();
-                msg.setTitle("模型" + splitMergeReq.getOptions());
-
-                try {
-                    Process process = llamaCommandResp.getProcess();
-                    process.waitFor();
-                    if (process.exitValue() == 0) {
-                        msg.setContent("模型" + splitMergeReq.getOptions() + "成功");
-                        msg.setStatus(Msg.Status.success);
-                        log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
-                    } else {
-                        msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
-                        msg.setStatus(Msg.Status.error);
-                        log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
-                    }
-                } catch (InterruptedException e) {
-                    msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
-                    msg.setStatus(Msg.Status.error);
-                    Thread.currentThread().interrupt();
-                    log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
-                } finally {
-                    llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
-                    try {
-                        messageQueue.put(msg);
-                    } catch (InterruptedException e) {
-                        log.error(e.getMessage());
-                    }
-                }
-            });
+            handleAsync(splitMergeReq, llamaCommandResp, llamaCommandReq);
         }
+        saveDB(splitMergeReq);
+    }
+
+    private void saveDB(SplitMergeReq splitMergeReq) {
         GgufSplitMerge entity = new GgufSplitMerge();
         entity.setInput(splitMergeReq.getInput());
         entity.setOutput(splitMergeReq.getOutput());
@@ -138,5 +146,38 @@ public class ToolsController {
         entity.setSplitParam(splitMergeReq.getSplitParam());
         entity.setAsync(splitMergeReq.isAsync());
         ggufSplitMergeService.save(entity);
+    }
+
+    private void handleAsync(SplitMergeReq splitMergeReq, LlamaCppRunner.LlamaCommandResp llamaCommandResp, LlamaCppRunner.LlamaCommandReq llamaCommandReq) {
+        threadPool.submit(() -> {
+            Msg msg = new Msg();
+            msg.setTitle("模型" + splitMergeReq.getOptions());
+
+            try {
+                Process process = llamaCommandResp.getProcess();
+                process.waitFor();
+                if (process.exitValue() == 0) {
+                    msg.setContent("模型" + splitMergeReq.getOptions() + "成功");
+                    msg.setStatus(Msg.Status.success);
+                    log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
+                } else {
+                    msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                    msg.setStatus(Msg.Status.error);
+                    log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
+                }
+            } catch (InterruptedException e) {
+                msg.setContent("模型" + splitMergeReq.getOptions() + "失败");
+                msg.setStatus(Msg.Status.error);
+                Thread.currentThread().interrupt();
+                log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
+            } finally {
+                llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
+                try {
+                    messageQueue.put(msg);
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage());
+                }
+            }
+        });
     }
 }
