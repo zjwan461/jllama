@@ -278,7 +278,8 @@ public class LlamaCppRunner {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(es))) {
                 String line = "";
                 while ((line = br.readLine()) != null) {
-                    log.error("{}:{}", command.getCommand(), line);
+                    //测试了一下llama.cpp一些输出会通过errorStream输出，因此改用info记录
+                    log.info("{}:{}", command.getCommand(), line);
                 }
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
