@@ -76,7 +76,7 @@ logging:
   file:
     max-history: 7
     max-size: 10MB
-    path: ${user.home}/.jllama/logs/app.log
+    name: ${user.home}/.jllama/logs/app.log
   level:
     root: info
     com.jllama: debug
