@@ -153,6 +153,7 @@ public class ProcessController {
                 StrUtil.splitToArray(entity.getLlamaCppArgs(), " "));
         Future<LlamaCppRunner.LlamaCommandResp> future = llamaCommandReq.getFuture();
         LlamaCppRunner.LlamaCommandResp llamaCommandResp = future.get();
+        llamaCppRunner.logProcessOutput(llamaCommandResp.getProcess(), LlamaCppRunner.LlamaCommand.LLAMA_SERVER);
         threadPoolTaskExecutor.submit(() -> {
             Process process = llamaCommandResp.getProcess();
             try {

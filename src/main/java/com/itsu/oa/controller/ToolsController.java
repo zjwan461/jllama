@@ -92,11 +92,7 @@ public class ToolsController {
         }
 
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
-        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runQuantize(llamaCppDir, quantizeReq.getOriginModel(), quantizeReq.getOutputModel(), quantizeReq.getQuantizeParam(), quantizeReq.isAsync());
-        if (llamaCommandReq.getFuture() != null) {
-            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            handleAsync("模型量化", llamaCommandResp, llamaCommandReq);
-        }
+        llamaCppRunner.runQuantize(llamaCppDir, quantizeReq.getOriginModel(), quantizeReq.getOutputModel(), quantizeReq.getQuantizeParam(), quantizeReq.isAsync());
         saveDB(quantizeReq);
         return R.success();
     }
@@ -133,12 +129,7 @@ public class ToolsController {
             throw new JException("非法的合并参数,input源文件格式不正确");
         }
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
-        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), null, null, input, output, splitMergeReq.isAsync());
-
-        if (llamaCommandReq.getFuture() != null) {
-            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            handleAsync(splitMergeReq.getOptions(), llamaCommandResp, llamaCommandReq);
-        }
+        llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), null, null, input, output, splitMergeReq.isAsync());
         saveDB(splitMergeReq);
     }
 
@@ -176,11 +167,7 @@ public class ToolsController {
 
         String llamaCppDir = settingsService.getCachedSettings().getLlamaCppDir();
 
-        LlamaCppRunner.LlamaCommandReq llamaCommandReq = llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
-        if (llamaCommandReq.getFuture() != null) {
-            LlamaCppRunner.LlamaCommandResp llamaCommandResp = llamaCommandReq.getFuture().get();
-            handleAsync(splitMergeReq.getOptions(), llamaCommandResp, llamaCommandReq);
-        }
+        llamaCppRunner.runSplit(llamaCppDir, splitMergeReq.getOptions(), splitOption, splitParam, splitMergeReq.getInput(), splitMergeReq.getOutput(), splitMergeReq.isAsync());
         saveDB(splitMergeReq);
     }
 

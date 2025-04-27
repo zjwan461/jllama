@@ -3,18 +3,17 @@ package com.itsu.oa.util;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.itsu.oa.core.component.MessageQueue;
+import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -22,10 +21,13 @@ public class LlamaCppRunner {
 
     private final ThreadPoolTaskExecutor threadPool;
 
+    private final MessageQueue messageQueue;
+
     private final LinkedHashMap<String, LlamaCommandReq> futures = new LinkedHashMap<>();
 
-    public LlamaCppRunner(ThreadPoolTaskExecutor threadPool) {
+    public LlamaCppRunner(ThreadPoolTaskExecutor threadPool, MessageQueue messageQueue) {
         this.threadPool = threadPool;
+        this.messageQueue = messageQueue;
     }
 
     public enum LlamaCommand {
@@ -156,6 +158,38 @@ public class LlamaCppRunner {
         }
     }
 
+    public void handleAsyncMsgPush(String optionsDetail, Process process, String execId) {
+        if (process != null) {
+            Msg msg = new Msg();
+            msg.setTitle(optionsDetail);
+
+            try {
+                process.waitFor();
+                if (process.exitValue() == 0) {
+                    msg.setContent(optionsDetail + "成功");
+                    msg.setStatus(Msg.Status.success);
+                    log.info("execID: {} process Exit Code: {}", execId, process.exitValue());
+                } else {
+                    msg.setContent(optionsDetail + "失败, exit code=" + process.exitValue());
+                    msg.setStatus(Msg.Status.error);
+                    log.error("execID: {} process Exit Code: {}", execId, process.exitValue());
+                }
+            } catch (InterruptedException e) {
+                msg.setContent(optionsDetail + "失败");
+                msg.setStatus(Msg.Status.error);
+                Thread.currentThread().interrupt();
+                log.error("execID: {} Thread interrupted", execId, e);
+            } finally {
+                try {
+                    messageQueue.put(msg);
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage());
+                }
+                this.stop(execId, true);
+            }
+        }
+    }
+
     public LlamaCommandReq runQuantize(String cppDir, String input, String output, String quantizeParam, boolean async) {
         String execId = IdUtil.fastSimpleUUID();
         LlamaCommandReq llamaCommandReq = new LlamaCommandReq();
@@ -172,14 +206,17 @@ public class LlamaCppRunner {
         commandList.add(quantizeParam);
         if (async) {
             Future<LlamaCommandResp> future = threadPool.submit(() -> {
+                Process process = null;
                 try {
                     ProcessBuilder processBuilder = new ProcessBuilder(commandList);
                     // 启动进程
-                    Process process = processBuilder.start();
-
+                    process = processBuilder.start();
+                    logProcessOutput(process, LlamaCommand.LLAMA_QUANTIZE);
                     llamaCommandResp.setProcess(process);
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
+                } finally {
+                    this.handleAsyncMsgPush("模型量化", process, execId);
                 }
                 return llamaCommandResp;
             });
@@ -227,14 +264,17 @@ public class LlamaCppRunner {
         commandList.add(output);
         if (async) {
             Future<LlamaCommandResp> future = threadPool.submit(() -> {
+                Process process = null;
                 try {
                     ProcessBuilder processBuilder = new ProcessBuilder(commandList);
                     // 启动进程
-                    Process process = processBuilder.start();
-
+                    process = processBuilder.start();
+                    logProcessOutput(process, LlamaCommand.LLAMA_QUANTIZE);
                     llamaCommandResp.setProcess(process);
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
+                } finally {
+                    this.handleAsyncMsgPush("模型" + option, process, execId);
                 }
                 return llamaCommandResp;
             });
@@ -264,27 +304,10 @@ public class LlamaCppRunner {
     public void logProcessOutput(Process process, LlamaCommand command) {
         InputStream is = process.getInputStream();
         InputStream es = process.getErrorStream();
-        threadPool.submit(() -> {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                String line = "";
-                while ((line = br.readLine()) != null) {
-                    log.info("{}:{}", command.getCommand(), line);
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
-        threadPool.submit(() -> {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(es))) {
-                String line = "";
-                while ((line = br.readLine()) != null) {
-                    //测试了一下llama.cpp一些输出会通过errorStream输出，因此改用info记录
-                    log.info("{}:{}", command.getCommand(), line);
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
+        ProcessLogThread infoThread = new ProcessLogThread(is, command, "log-info-thread");
+        infoThread.start();
+        ProcessLogThread errThread = new ProcessLogThread(es, command, "log-err-thread");
+        errThread.start();
     }
 
     public LlamaCommandReq run(String modelName, String cppDir, LlamaCommand command, String... args) {
@@ -312,23 +335,7 @@ public class LlamaCppRunner {
                 Process process = processBuilder.start();
 
                 llamaCommandResp.setProcess(process);
-                // 获取脚本执行的输出流
-//                BufferedReader infoReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-//                String line = "";
-//                while ((line = infoReader.readLine()) != null) {
-//                    log.info("script output:{}", line);
-//                }
-//
-//                // 等待脚本执行完成并获取返回值
-//                int exitCode = process.waitFor();
-//                System.out.println("脚本执行完成，返回值: " + exitCode);
-//                if (exitCode != 0) {
-//                    String error;
-//                    while ((error = errorReader.readLine()) != null) {
-//                        log.error("script output:{}", error);
-//                    }
-//                }
+
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
@@ -385,19 +392,19 @@ public class LlamaCppRunner {
     }
 
     public static void main(String[] args) throws Exception {
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
-        threadPoolTaskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
-        threadPoolTaskExecutor.setQueueCapacity(10000);
-        threadPoolTaskExecutor.initialize();
-        LlamaCppRunner llamaCppRunner = new LlamaCppRunner(threadPoolTaskExecutor);
-        LlamaCommandReq llamaCommandReq = llamaCppRunner.run("unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "E:\\workspaces\\java\\jllama\\llama\\llama-b4893-bin-win-avx-x64", LlamaCommand.LLAMA_SERVER, "--model", "D:\\models\\modelScope\\unsloth\\DeepSeek-R1-Distill-Qwen-1.5B-GGUF\\DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf", "--port", "8000", "--log-file", "1.log");
-        Future<LlamaCommandResp> future = llamaCommandReq.getFuture();
-        LlamaCommandResp llamaCommandResp = future.get();
-        TimeUnit.MINUTES.sleep(2);
-//        Process process = llamaCommandResp.getProcess();
-//        process.destroy();
-        llamaCppRunner.stop(llamaCommandResp.getExecId(), true);
-        threadPoolTaskExecutor.shutdown();
+//        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+//        threadPoolTaskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+//        threadPoolTaskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
+//        threadPoolTaskExecutor.setQueueCapacity(10000);
+//        threadPoolTaskExecutor.initialize();
+//        LlamaCppRunner llamaCppRunner = new LlamaCppRunner(threadPoolTaskExecutor);
+//        LlamaCommandReq llamaCommandReq = llamaCppRunner.run("unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "E:\\workspaces\\java\\jllama\\llama\\llama-b4893-bin-win-avx-x64", LlamaCommand.LLAMA_SERVER, "--model", "D:\\models\\modelScope\\unsloth\\DeepSeek-R1-Distill-Qwen-1.5B-GGUF\\DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf", "--port", "8000", "--log-file", "1.log");
+//        Future<LlamaCommandResp> future = llamaCommandReq.getFuture();
+//        LlamaCommandResp llamaCommandResp = future.get();
+//        TimeUnit.MINUTES.sleep(2);
+////        Process process = llamaCommandResp.getProcess();
+////        process.destroy();
+//        llamaCppRunner.stop(llamaCommandResp.getExecId(), true);
+//        threadPoolTaskExecutor.shutdown();
     }
 }

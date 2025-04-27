@@ -34,6 +34,10 @@
                         <el-form-item label="输出路径" prop="output">
                             <el-input type="text" v-model="form3.output" placeholder="输出gguf文件的位置"></el-input>
                         </el-form-item>
+                        <el-form-item label="异步执行">
+                            <el-switch v-model="form3.async"></el-switch>
+                            <i style="color: #909399;"> 默认同步执行，开启则会在后台执行，不会阻塞页面</i>
+                        </el-form-item>
                     </el-form>
                     <div class="stepButton">
                         <el-button type="info" size="small" :disabled="step === 1" @click="back()">上一步</el-button>
@@ -90,7 +94,8 @@ export default {
                 ],
             },
             form3: {
-                output: ''
+                output: '',
+                async: false
             },
             rules3: {
                 output: [
@@ -147,7 +152,7 @@ export default {
                     originModel: this.form1.file,
                     quantizeParam: this.form2.quantizeParam,
                     outputModel: this.form3.output,
-                    async: false
+                    async: this.form3.async
                 }
                 if (this.step >= 3) {
                     this.$http.post('/api/tools/llama-quantize', getRequestBodyJson(req)).then(res => {
