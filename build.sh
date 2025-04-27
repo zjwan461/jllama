@@ -35,7 +35,7 @@ mvn clean package -Dmaven.test.skip=true
 
 # 复制脚本文件
 if [ -d "$SCRIPTS_DIR" ]; then
-    cp "$SCRIPTS_DIR"/* "$BUILD_DIR/scripts"
+    cp "$SCRIPTS_DIR"/* "$BUILD_DIR/scripts/"
     chmod +x "$BUILD_DIR"/*
 fi
 
@@ -53,5 +53,8 @@ fi
 if [ -d "$LLAMA_DIR" ]; then
     cp -r "$LLAMA_DIR" "$BUILD_DIR/$LLAMA_DIR"
 fi
+
+mv build\scripts\startup.bat build\startup.bat
+mv build\scripts\startup.sh build\startup.sh
 
 echo "build success"

@@ -31,7 +31,7 @@ rem 使用Maven进行项目打包并跳过测试
 call mvn clean package -Dmaven.test.skip=true
 
 rem 复制scripts目录下的文件到build目录
-xcopy /Y scripts\* build\scripts
+xcopy /Y scripts\* build\scripts\
 
 rem 复制application.yml.template到build目录并重命名为application.yml
 copy application.yml.template build\application.yml
@@ -42,5 +42,7 @@ copy target\jllama-0.0.1-SNAPSHOT.jar build\jllama.jar
 rem 复制llmama目录到build目录
 xcopy /E /I llama build\llama
 
-echo "build success"
+move build\scripts\startup.bat build\
+move build\scripts\startup.sh build\
+echo build success
 endlocal
