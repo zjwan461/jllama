@@ -12,7 +12,7 @@ Jllama 是一个基于Java构建的AI模型运行Web管理控制台。Jllama集�
 
 ### 整体技术方案
 
-业务技术底座：SpringBoot、vue
+业务技术底座：SpringBoot、Vue、elementui
 
 AI模型部署技术底座：[llama.cpp](https://github.com/ggml-org/llama.cpp)
 
@@ -87,7 +87,19 @@ Jllama默认不会开启GPU加速，这主要是考虑到兼容所有的个人�
    export CUDA_HOME=/usr/local/cuda
    export PATH="${CUDA_HOME}/bin:$PATH"
    ```
-## 如何部署Jllama
+## 如何构建和部署Jllama
+
+### Windows
+
+运行根目录下的`build.bat` 
+
+###  Linux & Macos
+
+运行根目录下的`build.sh`
+
+运行成功后会在jllama的工程下生成一个build文件夹，Windows操作系统运行**startup.bat,** Linux和Mac运行**startup.sh**脚本，等待几秒钟会自动打开浏览器访问`http://127.0.0.1:21434/app`
+
+![image-20250427224517657](https://jerrysu232.oss-cn-shenzhen.aliyuncs.com/img/image-20250427224517657.png) 
 
    
 
