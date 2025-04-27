@@ -4,12 +4,16 @@ set -ex
 # 定义变量
 BUILD_DIR="build"
 UI_DIR="ui"
-RESOURCES_DIR="src/java/resources/static"
+RESOURCES_DIR="src/main/resources/static"
 SCRIPTS_DIR="scripts"
 TARGET_DIR="target"
-JAR_FILE="jllama-0.0.1-SNAPSHO.jar"
+JAR_FILE="jllama-0.0.1-SNAPSHOT.jar"
 TEMPLATE_FILE="application.yml.template"
-LLMAMA_DIR="llmama"
+LLAMA_DIR="llama"
+
+# 先删除UI静态文件目录和build目录
+rm -rf "$RESOURCES_DIR"
+rm -rf "$BUILD_DIR"
 
 # 创建build目录
 mkdir -p "$BUILD_DIR"
@@ -20,7 +24,7 @@ if [ -d "$UI_DIR" ]; then
     npm install
     npm run build
     if [ -d "dist" ]; then
-        cp -r dist "../$RESOURCES_DIR"
+        cp -rf dist "../$RESOURCES_DIR"
         mv "../$RESOURCES_DIR/dist" "../$RESOURCES_DIR/app"
     fi
     cd ..
@@ -46,6 +50,8 @@ if [ -f "$TARGET_DIR/$JAR_FILE" ]; then
 fi
 
 # 复制llmama目录
-if [ -d "$LLMAMA_DIR" ]; then
-    cp -r "$LLMAMA_DIR" "$BUILD_DIR/$LLMAMA_DIR"
+if [ -d "$LLAMA_DIR" ]; then
+    cp -r "$LLAMA_DIR" "$BUILD_DIR/$LLAMA_DIR"
 fi
+
+echo "build success"

@@ -1,0 +1,1 @@
+start java -jar -Dspring.config.location=./application.yml jllama.jar
