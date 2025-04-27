@@ -35,7 +35,7 @@ mvn clean package -Dmaven.test.skip=true
 
 # 复制脚本文件
 if [ -d "$SCRIPTS_DIR" ]; then
-    cp "$SCRIPTS_DIR"/* "$BUILD_DIR/"
+    cp "$SCRIPTS_DIR"/* "$BUILD_DIR/scripts"
     chmod +x "$BUILD_DIR"/*
 fi
 
