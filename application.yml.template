@@ -1,6 +1,11 @@
 server:
   port: 21434
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: -1
+      max-request-size: -1
   application:
     name: jllama
   datasource:
@@ -34,7 +39,49 @@ jllama:
   gpu:
     enable: false
     llama-dir: #${user.dir}/llama/llama-b4893-bin-win-cu12.4-x64
+  quantize:
+    supportedTypes:
+      - Q4_0
+      - Q4_1
+      - Q5_0
+      - Q5_1
+      - IQ2_XXS
+      - IQ2_XS
+      - IQ2_S
+      - IQ2_M
+      - IQ1_S
+      - IQ1_M
+      - TQ1_0
+      - TQ2_0
+      - Q2_K
+      - Q2_K_S
+      - IQ3_XXS
+      - IQ3_S
+      - IQ3_M
+      - Q3_K
+      - IQ3_XS
+      - Q3_K_S
+      - Q3_K_M
+      - Q3_K_L
+      - IQ4_NL
+      - IQ4_XS
+      - Q4_K
+      - Q4_K_S
+      - Q4_K_M
+      - Q5_K
+      - Q5_K_S
+      - Q5_K_M
+      - Q6_K
+      - Q8_0
+      - F16
+      - BF16
+      - F32
+      - COPY
 logging:
+  file:
+    max-history: 7
+    max-size: 10MB
+    name: ${user.home}/.jllama/logs/app.log
   level:
     root: info
     com.jllama: debug
