@@ -11,6 +11,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itsu.oa.config.JllamaConfigProperties;
 import com.itsu.oa.controller.req.FileDownloadReq;
 import com.itsu.oa.controller.req.ModelReq;
+import com.itsu.oa.core.component.MessageQueue;
+import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
@@ -23,6 +25,7 @@ import com.itsu.oa.service.FileDownloadService;
 import com.itsu.oa.service.ModelDownload;
 import com.itsu.oa.service.ModelService;
 import com.itsu.oa.service.SettingsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +43,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/mgn")
+@Slf4j
 public class ModelMgnController {
 
     @Resource(name = "modelScopeModelDownload")
@@ -59,6 +63,9 @@ public class ModelMgnController {
 
     @Resource
     private JllamaConfigProperties jllamaConfigProperties;
+
+    @Resource
+    private MessageQueue messageQueue;
 
     @Auth
     @GetMapping("/list")
@@ -271,6 +278,8 @@ public class ModelMgnController {
             return R.fail("请选择一个文件上传");
         }
 
+        Msg msg = new Msg();
+        msg.setTitle("模型导入");
         try {
             Path uploadPath = Paths.get(modelSaveDir + File.separator + "import");
             if (!Files.exists(uploadPath)) {
@@ -291,9 +300,18 @@ public class ModelMgnController {
                 fileEntity.setType("import");
                 fileDownloadService.save(fileEntity);
             }
-
+            msg.setContent("模型导入成功");
+            msg.setStatus(Msg.Status.success);
         } catch (Exception e) {
+            msg.setContent("模型导入失败," + e.getMessage());
+            msg.setStatus(Msg.Status.error);
             throw new JException("文件导入失败", e);
+        } finally {
+            try {
+                messageQueue.put(msg);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+            }
         }
         return R.success();
 
