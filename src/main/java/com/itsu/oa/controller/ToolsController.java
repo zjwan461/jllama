@@ -70,6 +70,15 @@ public class ToolsController {
         return R.success(jllamaConfigProperties.getQuantize().getSupportedTypes());
     }
 
+
+    @Auth
+    @GetMapping("/list-quantize")
+    public R listQuantize(int page, int limit) {
+        Page<Quantize> resPage = quantizeService.page(new Page<>(page, limit)
+                , Wrappers.lambdaQuery(Quantize.class).orderByDesc((SFunction<Quantize, Date>) BaseEntity::getCreateTime));
+        return R.success(resPage);
+    }
+
     /**
      * llama-quantize <原模型目录> <转换后的模型保存路径> <量化位数>
      *

@@ -93,8 +93,8 @@ export default {
   data() {
     return {
       total: 0,
-      pageSize: 10,
-      pageSizes: [10, 20, 50],
+      pageSize: 5,
+      pageSizes: [5, 10, 20],
       currentPage: 1,
       tableData: [],
       form: {

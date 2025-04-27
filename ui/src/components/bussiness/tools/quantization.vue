@@ -58,6 +58,33 @@
             <el-col :span="12" class="card-box">
                 <el-card class="card">
                     <div slot="header"><span><i class="el-icon-edit"></i> 操作历史</span></div>
+                    <el-table :data="tableData" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline class="demo-table-expand">
+                                    <el-form-item label="异步">
+                                        <span>{{ props.row.async }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="输入文件">
+                                        <span>{{ props.row.input }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="输出文件">
+                                        <span>{{ props.row.output }}</span>
+                                    </el-form-item>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="执行时间" prop="createTime">
+                        </el-table-column>
+                        <el-table-column label="量化精度" prop="param">
+                        </el-table-column>
+                    </el-table>
+                    <div class="block">
+                        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                            :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize"
+                            layout="total, sizes, prev, pager, next, jumper" :total="total">
+                        </el-pagination>
+                    </div>
                 </el-card>
             </el-col>
         </el-row>
@@ -70,6 +97,11 @@ export default {
     name: "quantization",
     data() {
         return {
+            total: 0,
+            pageSize: 5,
+            pageSizes: [5, 10, 20],
+            currentPage: 1,
+            tableData: [],
             step: 1,
             form1: {
                 model: '',
@@ -107,6 +139,7 @@ export default {
     created() {
         this.getModelList()
         this.getSupportedQuantize()
+        this.getTableData()
     },
     methods: {
         getSupportedQuantize() {
@@ -165,6 +198,23 @@ export default {
                     })
                 }
             })
+        },
+        handleSizeChange(pageSize) {
+            this.pageSize = pageSize
+            this.getTableData()
+        },
+        handleCurrentChange(current) {
+            this.currentPage = current
+            this.getTableData()
+        },
+        getTableData() {
+            this.$http.get('/api/tools/list-quantize?page=' + this.currentPage + "&limit=" + this.pageSize)
+                .then(res => {
+                    if (res.success === true) {
+                        this.tableData = res.data.records
+                        this.total = res.data.total
+                    }
+                })
         }
     }
 }
