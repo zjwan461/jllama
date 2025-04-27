@@ -47,6 +47,7 @@ create table if not exists file_download
     file_path   varchar(255)    not null,
     file_name   varchar(50)     not null,
     file_size   bigint unsigned not null,
+    type        varchar(50)     not null default 'download',
     create_time datetime,
     update_time datetime,
     primary key (id)

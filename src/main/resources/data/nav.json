@@ -7,15 +7,27 @@
   },
   {
     "id": 2,
-    "title": "模型下载",
+    "title": "模型管理",
     "icon": "el-icon-sold-out",
-    "href": "/mgn"
+    "children": [
+      {
+        "id": 21,
+        "title": "模型下载",
+        "icon": "el-icon-bottom",
+        "href": "/mgn/model-download"
+      },
+      {
+        "id": 22,
+        "title": "模型导入",
+        "icon": "el-icon-document-add",
+        "href": "/mgn/model-import"
+      }
+    ]
   },
   {
     "id": 3,
     "title": "工具箱",
     "icon": "el-icon-s-tools",
-    "href": "/tools",
     "children": [
       {
         "id": 31,

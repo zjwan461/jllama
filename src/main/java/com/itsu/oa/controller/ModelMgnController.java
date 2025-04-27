@@ -26,10 +26,15 @@ import com.itsu.oa.service.SettingsService;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 
@@ -58,13 +63,16 @@ public class ModelMgnController {
     @Auth
     @GetMapping("/list")
     public R list(int page, int limit, String search) {
+        String importDir = settingsService.getCachedSettings().getModelSaveDir() + File.separator + "import";
         IPage<Model> reqPage = new Page<>(page, limit);
         IPage<Model> resPage = modelService.page(reqPage, Wrappers.lambdaQuery(Model.class)
                 .orderByDesc((SFunction<Model, Date>) BaseEntity::getCreateTime)
                 .like(StrUtil.isNotBlank(search), (SFunction<Model, String>) Model::getName, search)
                 .or()
                 .like(StrUtil.isNotBlank(search), (SFunction<Model, String>) Model::getRepo, search));
-
+        resPage.getRecords().forEach(x -> {
+            x.setImportDir(importDir);
+        });
         return R.success(resPage);
     }
 
@@ -133,6 +141,7 @@ public class ModelMgnController {
             fileDownload.setModelName(model.getName());
             fileDownload.setFileSize(fileDownloadReq.getFileSize());
             fileDownload.setFileName(fileDownloadReq.getFileName());
+            fileDownload.setType("download");
             Settings settings = settingsService.getCachedSettings();
             fileDownload.setFilePath(settings.getModelSaveDir() + "/" + model.getDownloadPlatform() + "/" + model.getRepo());
             fileDownload.setCreateTime(new Date());
@@ -253,4 +262,40 @@ public class ModelMgnController {
     }
 
 
+    @Auth
+    @PostMapping("/import-file")
+    public R importFile(@RequestParam("file") MultipartFile file, @RequestParam("modelId") Long modelId) {
+        Settings settings = settingsService.getCachedSettings();
+        String modelSaveDir = settings.getModelSaveDir();
+        if (file.isEmpty()) {
+            return R.fail("请选择一个文件上传");
+        }
+
+        try {
+            Path uploadPath = Paths.get(modelSaveDir + File.separator + "import");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(file.getOriginalFilename());
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            Model model = modelService.getById(modelId);
+            if (model != null) {
+                FileDownload fileEntity = new FileDownload();
+                fileEntity.setFileName(file.getOriginalFilename());
+                fileEntity.setFileSize(file.getSize());
+                fileEntity.setFilePath(modelSaveDir + File.separator + "import");
+                fileEntity.setModelName(model.getName());
+                fileEntity.setModelId(modelId);
+                fileEntity.setType("import");
+                fileDownloadService.save(fileEntity);
+            }
+
+        } catch (Exception e) {
+            throw new JException("文件导入失败", e);
+        }
+        return R.success();
+
+    }
 }

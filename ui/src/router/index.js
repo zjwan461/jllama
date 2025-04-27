@@ -40,10 +40,15 @@ const routes = [{
     name: 'watch',
     component: () => import('../components/bussiness/watch.vue')
   }, {
-    path: '/mgn',
-    name: 'mgn',
-    component: () => import('../components/bussiness/mgn.vue')
+    path: '/mgn/model-download',
+    name: 'model-download',
+    component: () => import('../components/bussiness/mgn/model-download.vue')
   }, {
+    path: '/mgn/model-import',
+    name: 'model-import',
+    component: () => import('../components/bussiness/mgn/model-import.vue')
+  }
+  , {
     path: '/history',
     name: 'watch',
     component: () => import('../components/bussiness/history.vue')

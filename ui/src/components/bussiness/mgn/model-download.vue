@@ -2,6 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
       <el-breadcrumb-item>模型管理</el-breadcrumb-item>
+      <el-breadcrumb-item>模型下载</el-breadcrumb-item>
     </el-breadcrumb>
 
     <el-card>
@@ -14,25 +15,24 @@
           <el-button type="success" @click="create">新增</el-button>
         </el-form-item>
       </el-form>
-      <el-table
-        :data="tableData"
-        border
-        style="width: 100%"
-        @expand-change="expandChange"
-      >
+      <el-table :data="tableData" border style="width: 100%" @expand-change="expandChange">
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
               <el-form-item label="模型文件列表">
                 <!--                <span v-html="props.row.files"></span>-->
                 <ul>
-                  <li v-for="(item, index) in props.row.files" :key="index">{{ item.fileName }} &nbsp;&nbsp;&nbsp;&nbsp;
-                    {{ item.percent }} &nbsp;&nbsp;&nbsp;&nbsp; <el-button type="text" size="small" @click="delFile(item.id)">删除</el-button>
+                  <li v-for="(item, index) in props.row.files" :key="index">{{ item.fileName }} &nbsp;&nbsp;&nbsp;&nbsp; {{ item.type }} &nbsp;&nbsp;&nbsp;&nbsp;
+                    {{ item.percent }} &nbsp;&nbsp;&nbsp;&nbsp; <el-button type="text" size="small"
+                      @click="delFile(item.id)">删除</el-button>
                   </li>
                 </ul>
               </el-form-item>
               <el-form-item label="存储目录">
                 <span>{{ props.row.saveDir }}</span>
+              </el-form-item>
+              <el-form-item label="导入目录">
+                <span>{{ props.row.importDir }}</span>
               </el-form-item>
               <el-form-item label="创建时间">
                 <span>{{ props.row.createTime }}</span>
@@ -40,48 +40,28 @@
             </el-form>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="repo"
-          label="repo">
+        <el-table-column prop="repo" label="repo">
         </el-table-column>
-        <el-table-column
-          prop="name"
-          label="模型名称">
+        <el-table-column prop="name" label="模型名称">
         </el-table-column>
-        <el-table-column
-          prop="downloadPlatform"
-          label="下载平台">
+        <el-table-column prop="downloadPlatform" label="下载平台">
         </el-table-column>
-        <el-table-column
-          fixed="right"
-          label="操作"
-          width="200">
+        <el-table-column fixed="right" label="操作" width="160">
           <template slot-scope="scope">
-            <el-button @click="edit(scope.row, scope.$index)" type="primary" size="small">修改</el-button>
-            <el-button @click="delModel(scope.row.id, scope.$index)" type="danger" size="small">删除</el-button>
+              <el-button @click="edit(scope.row, scope.$index)" type="primary" size="small">修改</el-button>
+              <el-button @click="delModel(scope.row.id, scope.$index)" type="danger" size="small">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <div class="block">
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="currentPage"
-          :page-sizes="pageSizes"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total">
+        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage"
+          :page-sizes="pageSizes" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total">
         </el-pagination>
       </div>
     </el-card>
 
-    <el-dialog :title="dialogTitle"
-               :visible.sync="showDialog"
-               :close-on-press-escape=false
-               :close-on-click-modal=false
-               :destroy-on-close=true
-               @close="resetDialog"
-    >
+    <el-dialog :title="dialogTitle" :visible.sync="showDialog" :close-on-press-escape=false :close-on-click-modal=false
+      :destroy-on-close=true @close="resetDialog">
       <el-form :model="modelForm" :rules="rules" ref="modelForm">
         <el-form-item label="下载平台" label-width="120px" prop="downloadPlatform">
           <el-select v-model="modelForm.downloadPlatform" placeholder="下载平台">
@@ -102,28 +82,15 @@
           <el-input v-model="modelForm.root" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="模型文件" label-width="120px">
-          <el-table
-            v-show="showModelFiles"
-            :data="modelFiles"
-            @selection-change="handleSelectionChange"
+          <el-table v-show="showModelFiles" :data="modelFiles" @selection-change="handleSelectionChange"
             style="width: 100%">
-            <el-table-column
-              type="selection"
-              width="55">
+            <el-table-column type="selection" width="55">
             </el-table-column>
-            <el-table-column
-              prop="name"
-              label="文件名"
-              width="180">
+            <el-table-column prop="name" label="文件名" width="180">
             </el-table-column>
-            <el-table-column
-              prop="size"
-              label="文件大小"
-              width="180">
+            <el-table-column prop="size" label="文件大小" width="180">
             </el-table-column>
-            <el-table-column
-              label="操作"
-              width="100">
+            <el-table-column label="操作" width="100">
               <template slot-scope="scope">
                 <el-button @click="download(scope.row, scope.$index)" type="text" size="small">下载</el-button>
               </template>
@@ -141,10 +108,10 @@
 </template>
 
 <script>
-import {getRequestBodyJson, fetchFluxData} from "@/common/common"
+import { getRequestBodyJson, fetchFluxData } from "@/common/common"
 
 export default {
-  name: 'mgn',
+  name: 'model-download',
   data() {
     return {
       fluxCache: new Map(),
@@ -156,13 +123,13 @@ export default {
       showModelFiles: false,
       rules: {
         name: [
-          {required: true, message: '请输入模型名称', trigger: 'blur'}
+          { required: true, message: '请输入模型名称', trigger: 'blur' }
         ],
         repo: [
-          {required: true, message: '请输入repo仓库名称', trigger: 'blur'}
+          { required: true, message: '请输入repo仓库名称', trigger: 'blur' }
         ],
         downloadPlatform: [
-          {required: true, message: '请输入下载平台', trigger: 'blur'}
+          { required: true, message: '请输入下载平台', trigger: 'blur' }
         ]
       },
       modelForm: {
@@ -366,7 +333,7 @@ export default {
 }
 
 .demo-table-expand label {
-  width: 150px;
+  width: 200px;
   margin-left: 10px;
   color: #99a9bf;
 }

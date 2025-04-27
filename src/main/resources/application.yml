@@ -1,6 +1,11 @@
 server:
   port: 21434
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: -1
+      max-request-size: -1
   application:
     name: jllama
   datasource:
