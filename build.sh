@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 set -ex
 
 # 定义变量
@@ -24,8 +24,9 @@ if [ -d "$UI_DIR" ]; then
     npm install
     npm run build
     if [ -d "dist" ]; then
-        cp -rf dist "../$RESOURCES_DIR"
-        mv "../$RESOURCES_DIR/dist" "../$RESOURCES_DIR/app"
+        mkdir -p "../$RESOURCES_DIR/app"
+        cp -rf dist/ "../$RESOURCES_DIR/app"
+#        mv "../$RESOURCES_DIR/dist" "../$RESOURCES_DIR/app"
     fi
     cd ..
 fi
@@ -35,6 +36,7 @@ mvn clean package -Dmaven.test.skip=true
 
 # 复制脚本文件
 if [ -d "$SCRIPTS_DIR" ]; then
+    mkdir -p "$BUILD_DIR/scripts"
     cp "$SCRIPTS_DIR"/* "$BUILD_DIR/scripts/"
     chmod +x "$BUILD_DIR"/*
 fi
@@ -54,7 +56,7 @@ if [ -d "$LLAMA_DIR" ]; then
     cp -r "$LLAMA_DIR" "$BUILD_DIR/$LLAMA_DIR"
 fi
 
-mv build\scripts\startup.bat build\startup.bat
-mv build\scripts\startup.sh build\startup.sh
+mv build/scripts/startup.bat build/startup.bat
+mv build/scripts/startup.sh build/startup.sh
 
 echo "build success"
