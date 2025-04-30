@@ -1,10 +1,12 @@
 package com.itsu.oa.util;
 
 import cn.hutool.core.map.MapUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -20,84 +22,18 @@ public class ScriptRunner {
         this.threadPool = threadPool;
     }
 
-    public enum SCRIPT_TYPE {
-        BASH("bash"),
-        PYTHON("python3"),
-        BAT("cmd.exe", "/c");
 
-        private final String[] executor;
-
-        SCRIPT_TYPE(String... executor) {
-            this.executor = executor;
-        }
-
-        public String[] getExecutor() {
-            return executor;
-        }
-    }
-
+    @Data
     public static class ScriptResp {
         private int code;
         private String script;
-        private SCRIPT_TYPE scriptType;
+        private String scriptDir;
         private String[] args;
         private Process process;
-
-        public int getCode() {
-            return code;
-        }
-
-        public void setCode(int code) {
-            this.code = code;
-        }
-
-        public String getScript() {
-            return script;
-        }
-
-        public void setScript(String script) {
-            this.script = script;
-        }
-
-        public SCRIPT_TYPE getScriptType() {
-            return scriptType;
-        }
-
-        public void setScriptType(SCRIPT_TYPE scriptType) {
-            this.scriptType = scriptType;
-        }
-
-        public String[] getArgs() {
-            return args;
-        }
-
-        public void setArgs(String[] args) {
-            this.args = args;
-        }
-
-
-        public Process getProcess() {
-            return process;
-        }
-
-        public void setProcess(Process process) {
-            this.process = process;
-        }
-
-        @Override
-        public String toString() {
-            return "ScriptResp{" +
-                    "code=" + code +
-                    ", script='" + script + '\'' +
-                    ", scriptType=" + scriptType +
-                    ", args=" + Arrays.toString(args) +
-                    ", process=" + process +
-                    '}';
-        }
     }
 
 
-    public Future<ScriptResp> runScript(String script, SCRIPT_TYPE scriptType, String... args) {
+    public Future<ScriptResp> runScript(String scriptDir, String script, String... args) {
         String scheduleKey = generateScheduleKey(script, args);
         if (this.futures.containsKey(scheduleKey)) {
             log.info("当前脚本：{}运行中", scheduleKey);
@@ -105,12 +41,12 @@ public class ScriptRunner {
         }
         ScriptResp scriptResp = new ScriptResp();
         scriptResp.setScript(script);
-        scriptResp.setScriptType(scriptType);
+        scriptResp.setScriptDir(scriptDir);
         scriptResp.setArgs(args);
         Future<ScriptResp> future = threadPool.submit(() -> {
             try {
                 List<String> commandList = new ArrayList<>();
-                commandList.addAll(Arrays.asList(scriptType.getExecutor()));
+                commandList.add(scriptDir);
                 commandList.add(script);
                 if (args != null && args.length > 0) {
                     commandList.addAll(Arrays.asList(args));
@@ -121,13 +57,10 @@ public class ScriptRunner {
                 Process process = processBuilder.start();
                 scriptResp.setProcess(process);
 //                // 获取脚本执行的输出流
-//                BufferedReader infoReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                logScript(process, script);
 
-//                scriptResp.setInfoReader(infoReader);
-//                scriptResp.setErrorReader(errorReader);
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error(e.getMessage(), e);
                 scriptResp.setCode(-1);
             }
             return scriptResp;
@@ -135,6 +68,15 @@ public class ScriptRunner {
 
         futures.put(generateScheduleKey(scriptResp.getScript(), scriptResp.getArgs()), future);
         return future;
+    }
+
+    private void logScript(Process process,String script) {
+        InputStream is = process.getInputStream();
+        InputStream es = process.getErrorStream();
+        ScriptLogThread infoThread = new ScriptLogThread(is, script, "script-info");
+        infoThread.start();
+        ScriptLogThread errThread = new ScriptLogThread(es, script, "script-err");
+        errThread.start();
     }
 
 
@@ -186,7 +128,7 @@ public class ScriptRunner {
 //        for (int i = 0; i < 2; i++) {
 
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
-        Future<ScriptResp> future = scriptRunner.runScript(System.getProperty("user.dir") + "/scripts/cuda-version.bat", SCRIPT_TYPE.BASH);
+        Future<ScriptResp> future = scriptRunner.runScript("C:\\Users\\1\\.conda\\envs\\llamafactory\\python",System.getProperty("user.dir") + "/scripts/convert_hf_to_gguf.py", "D:\\models\\Qwen\\Qwen3-1___7B","--outfile","D:\\models/1.gguf");
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\test.bat", SCRIPT_TYPE.BAT, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
 //        TimeUnit.SECONDS.sleep(3);
 

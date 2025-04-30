@@ -16,17 +16,16 @@ public class CudaUtil {
 
     public boolean isCudaAvailable(Platform platform) {
         String cudaVersionScript = "";
-        ScriptRunner.SCRIPT_TYPE scriptType = null;
+        String scriptDir = "";
         if (platform == Platform.WINDOWS) {
             cudaVersionScript = "cuda-version.bat";
-            scriptType = ScriptRunner.SCRIPT_TYPE.BAT;
+            scriptDir = "cmd";
         } else if (platform == Platform.LINUX || platform == Platform.MAC) {
             cudaVersionScript = "cuda-version.sh";
-            scriptType = ScriptRunner.SCRIPT_TYPE.BASH;
+            scriptDir = "bash";
         }
         // Check if CUDA is available on the system
-        Future<ScriptRunner.ScriptResp> future = scriptRunner.runScript(System.getProperty("user.dir") + "/scripts/" + cudaVersionScript,
-                scriptType);
+        Future<ScriptRunner.ScriptResp> future = scriptRunner.runScript(scriptDir, System.getProperty("user.dir") + "/scripts/" + cudaVersionScript);
         try {
             ScriptRunner.ScriptResp scriptResp = future.get();
             return scriptResp.getProcess().waitFor() == 0;
