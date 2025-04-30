@@ -20,6 +20,9 @@
           <el-form-item label="日志保存天数">
             <el-input-number v-model="settings.logSaveDay"  placeholder=""></el-input-number>
           </el-form-item>
+          <el-form-item label="llama更新提醒">
+            <el-switch v-model="settings.updatePush"></el-switch>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="save">提交</el-button>
           </el-form-item>
@@ -40,7 +43,8 @@ export default {
         logSaveDir:'',
         logLine: 50,
         logSaveDay: 7,
-        gpuFlag: 0,
+        gpuFlag: false,
+        updatePush: false
       }
     }
   },

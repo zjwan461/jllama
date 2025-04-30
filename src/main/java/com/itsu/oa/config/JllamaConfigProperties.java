@@ -23,6 +23,8 @@ public class JllamaConfigProperties {
 
     private Quantize quantize;
 
+    private CheckUpdate checkUpdate;
+
     @Data
     public static class Quantize {
         private List<String> supportedTypes;
@@ -46,5 +48,13 @@ public class JllamaConfigProperties {
     public static class Gpu {
         private boolean enable;
         private String llamaDir;
+    }
+
+    @Data
+    public static class CheckUpdate {
+        private String cppUrl;
+        private String cppXpath;
+        private String factoryUrl;
+        private String factoryXpath;
     }
 }

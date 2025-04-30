@@ -22,5 +22,6 @@ public class Settings {
     private String logSaveDir;
     private int logLine;
     private int logSaveDay;
-    private int gpuFlag;
+    private boolean gpuFlag;
+    private boolean updatePush;
 }

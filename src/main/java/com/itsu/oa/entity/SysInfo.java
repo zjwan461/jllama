@@ -13,4 +13,6 @@ public class SysInfo extends BaseEntity {
 
     private String gpuPlatform;
 
+    private String cppVersion;
+
 }

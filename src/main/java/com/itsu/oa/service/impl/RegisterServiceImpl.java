@@ -80,10 +80,10 @@ public class RegisterServiceImpl implements RegisterService {
         settings.setLogLine(50);
         settings.setLogSaveDay(7);
         if (jllamaConfigProperties.getGpu().isEnable()) {
-            settings.setGpuFlag(1);
+            settings.setGpuFlag(true);
             settings.setLlamaCppDir(jllamaConfigProperties.getGpu().getLlamaDir());
         }else {
-            settings.setGpuFlag(0);
+            settings.setGpuFlag(false);
             String llamaCpuDir = jllamaConfigProperties.getLlamaCpuDir();
             String abbr = platform.getAbbr();
             settings.setLlamaCppDir(StrUtil.replace(llamaCpuDir, "%platform%", abbr));

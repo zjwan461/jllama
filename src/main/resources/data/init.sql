@@ -1,114 +1,116 @@
-create table if not exists sys_info
+CREATE TABLE IF NOT EXISTS SYS_INFO
 (
-    id           bigint unsigned not null,
-    platform     varchar(50)     not null,
-    os_arch      varchar(50)     not null,
-    gpu_platform varchar(50)     null,
-    create_time  datetime,
-    update_time  datetime,
-    primary key (id)
+    ID           BIGINT UNSIGNED NOT NULL,
+    PLATFORM     VARCHAR(50)     NOT NULL,
+    OS_ARCH      VARCHAR(50)     NOT NULL,
+    GPU_PLATFORM VARCHAR(50)     NULL,
+    CREATE_TIME  DATETIME,
+    UPDATE_TIME  DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create table if not exists user
+CREATE TABLE IF NOT EXISTS USER
 (
-    id          bigint unsigned not null,
-    username    varchar(50)     not null,
-    email       varchar(50)     not null,
-    password    char(32)        not null,
-    role        varchar(5)      not null,
-    create_time datetime,
-    update_time datetime,
-    primary key (id)
+    ID          BIGINT UNSIGNED NOT NULL,
+    USERNAME    VARCHAR(50)     NOT NULL,
+    EMAIL       VARCHAR(50)     NOT NULL,
+    PASSWORD    CHAR(32)        NOT NULL,
+    ROLE        VARCHAR(5)      NOT NULL,
+    CREATE_TIME DATETIME,
+    UPDATE_TIME DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create unique index if not exists sys_info_username_idx on `user`(username);
+CREATE UNIQUE INDEX IF NOT EXISTS SYS_INFO_USERNAME_IDX ON `USER`(USERNAME);
 
 
-create table if not exists model
+CREATE TABLE IF NOT EXISTS MODEL
 (
-    id                bigint unsigned not null,
-    name              varchar(50)     not null,
-    repo              varchar(50)     not null,
-    download_platform varchar(50)     null,
-    files             longtext        null,
-    save_dir          varchar(255)    null,
-    create_time       datetime,
-    update_time       datetime,
-    primary key (id)
+    ID                BIGINT UNSIGNED NOT NULL,
+    NAME              VARCHAR(50)     NOT NULL,
+    REPO              VARCHAR(50)     NOT NULL,
+    DOWNLOAD_PLATFORM VARCHAR(50)     NULL,
+    FILES             LONGTEXT        NULL,
+    SAVE_DIR          VARCHAR(255)    NULL,
+    CREATE_TIME       DATETIME,
+    UPDATE_TIME       DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create unique index if not exists model_name_idx on `model`(name);
+CREATE UNIQUE INDEX IF NOT EXISTS MODEL_NAME_IDX ON `MODEL`(NAME);
 
-create table if not exists file_download
+CREATE TABLE IF NOT EXISTS FILE_DOWNLOAD
 (
-    id          bigint unsigned not null,
-    model_id    bigint unsigned not null,
-    model_name  varchar(50)     not null,
-    file_path   varchar(255)    not null,
-    file_name   varchar(50)     not null,
-    file_size   bigint unsigned not null,
-    type        varchar(50)     not null default 'download',
-    create_time datetime,
-    update_time datetime,
-    primary key (id)
+    ID          BIGINT UNSIGNED NOT NULL,
+    MODEL_ID    BIGINT UNSIGNED NOT NULL,
+    MODEL_NAME  VARCHAR(50)     NOT NULL,
+    FILE_PATH   VARCHAR(255)    NOT NULL,
+    FILE_NAME   VARCHAR(50)     NOT NULL,
+    FILE_SIZE   BIGINT UNSIGNED NOT NULL,
+    TYPE        VARCHAR(50)     NOT NULL DEFAULT 'DOWNLOAD',
+    CREATE_TIME DATETIME,
+    UPDATE_TIME DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create table if not exists llama_exec_his
+CREATE TABLE IF NOT EXISTS LLAMA_EXEC_HIS
 (
-    id                bigint unsigned not null,
-    model_id          bigint unsigned not null,
-    model_name        varchar(50)     not null,
-    file_id           bigint unsigned not null,
-    file_path         varchar(255)    not null,
-    file_name         varchar(50)     not null,
-    llama_cpp_dir     varchar(255)    not null,
-    llama_cpp_command varchar(50)     not null,
-    llama_cpp_args    varchar(1000)   null,
-    status            int unsigned    not null default 0 comment '0 for not start, 1 for start',
-    pid               varchar(50)     null comment '执行llama.cpp进程的pid',
-    log_file_path     varchar(255)    null comment '执行llama.cpp进程日志文件目录',
-    create_time       datetime,
-    update_time       datetime,
-    primary key (id)
+    ID                BIGINT UNSIGNED NOT NULL,
+    MODEL_ID          BIGINT UNSIGNED NOT NULL,
+    MODEL_NAME        VARCHAR(50)     NOT NULL,
+    FILE_ID           BIGINT UNSIGNED NOT NULL,
+    FILE_PATH         VARCHAR(255)    NOT NULL,
+    FILE_NAME         VARCHAR(50)     NOT NULL,
+    LLAMA_CPP_DIR     VARCHAR(255)    NOT NULL,
+    LLAMA_CPP_COMMAND VARCHAR(50)     NOT NULL,
+    LLAMA_CPP_ARGS    VARCHAR(1000)   NULL,
+    STATUS            INT UNSIGNED    NOT NULL DEFAULT 0 COMMENT '0 FOR NOT START, 1 FOR START',
+    PID               VARCHAR(50)     NULL COMMENT '执行LLAMA.CPP进程的PID',
+    LOG_FILE_PATH     VARCHAR(255)    NULL COMMENT '执行LLAMA.CPP进程日志文件目录',
+    CREATE_TIME       DATETIME,
+    UPDATE_TIME       DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create table if not exists settings
+CREATE TABLE IF NOT EXISTS SETTINGS
 (
-    id             char(4)           not null,
-    llama_cpp_dir  varchar(1000)     not null,
-    model_save_dir varchar(1000)     not null,
-    log_save_dir   varchar(1000)     not null,
-    log_line       int     not null default 50,
-    log_save_day   int     not null default 7,
-    gpu_flag       int     not null default 0 comment '0 for disable, 1 for enable',
-    primary key (id)
+    ID             CHAR(4)           NOT NULL,
+    LLAMA_CPP_DIR  VARCHAR(1000)     NOT NULL,
+    MODEL_SAVE_DIR VARCHAR(1000)     NOT NULL,
+    LOG_SAVE_DIR   VARCHAR(1000)     NOT NULL,
+    LOG_LINE       INT     NOT NULL DEFAULT 50,
+    LOG_SAVE_DAY   INT     NOT NULL DEFAULT 7,
+    GPU_FLAG       INT     NOT NULL DEFAULT 0 COMMENT '0 FOR DISABLE, 1 FOR ENABLE',
+    PRIMARY KEY (ID)
 );
 
-create table if not exists gguf_split_merge
+CREATE TABLE IF NOT EXISTS GGUF_SPLIT_MERGE
 (
-    id             bigint unsigned   not null,
-    `option`       varchar(50)       not null,
-    `input`        varchar(1000)     not null,
-    `output`       varchar(1000)     not null,
-    split_option   varchar(50)       null,
-    split_param    varchar(50)       null,
-    async          int               not null default 1,
-    create_time    datetime,
-    update_time    datetime,
-    primary key (id)
+    ID             BIGINT UNSIGNED   NOT NULL,
+    `OPTION`       VARCHAR(50)       NOT NULL,
+    `INPUT`        VARCHAR(1000)     NOT NULL,
+    `OUTPUT`       VARCHAR(1000)     NOT NULL,
+    SPLIT_OPTION   VARCHAR(50)       NULL,
+    SPLIT_PARAM    VARCHAR(50)       NULL,
+    ASYNC          INT               NOT NULL DEFAULT 1,
+    CREATE_TIME    DATETIME,
+    UPDATE_TIME    DATETIME,
+    PRIMARY KEY (ID)
 );
 
-create table if not exists quantize
+CREATE TABLE IF NOT EXISTS QUANTIZE
 (
-    id             bigint unsigned   not null,
-    `input`        varchar(1000)     not null,
-    `output`       varchar(1000)     not null,
-    param          varchar(50)       not null comment '量化精度',
-    async          int               not null default 1,
-    create_time    datetime,
-    update_time    datetime,
-    primary key (id)
+    ID             BIGINT UNSIGNED   NOT NULL,
+    `INPUT`        VARCHAR(1000)     NOT NULL,
+    `OUTPUT`       VARCHAR(1000)     NOT NULL,
+    PARAM          VARCHAR(50)       NOT NULL COMMENT '量化精度',
+    ASYNC          INT               NOT NULL DEFAULT 1,
+    CREATE_TIME    DATETIME,
+    UPDATE_TIME    DATETIME,
+    PRIMARY KEY (ID)
 );
 
 
+ALTER TABLE SETTINGS ADD COLUMN IF NOT EXISTS UPDATE_PUSH INT NOT NULL DEFAULT 0;
 
+ALTER TABLE SYS_INFO ADD COLUMN IF NOT EXISTS CPP_VERSION VARCHAR(255) NOT NULL DEFAULT 'B4942';
