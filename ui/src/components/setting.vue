@@ -11,18 +11,22 @@
         <el-form-item label="模型存放目录">
           <el-input v-model="settings.modelSaveDir" placeholder=""></el-input>
         </el-form-item>
-        <el-form-item label="日志存放目录">
+        <el-form-item label="模型日志存放目录">
           <el-input v-model="settings.logSaveDir" placeholder=""></el-input>
         </el-form-item>
-        <el-form-item label="日志加载行数">
+        <el-form-item label="模型日志加载行数">
           <el-input-number v-model="settings.logLine" placeholder=""></el-input-number>
         </el-form-item>
-        <el-form-item label="日志保存天数">
+        <el-form-item label="模型日志保存天数">
           <el-input-number v-model="settings.logSaveDay" placeholder=""></el-input-number>
         </el-form-item>
         <el-form-item label="LlamaCpp更新提醒">
           <el-switch v-model="settings.updatePush"></el-switch> &nbsp;&nbsp;&nbsp;&nbsp;
           <el-button type="text" @click="checkUpdate">检查更新</el-button>
+        </el-form-item>
+        <el-form-item label="Python程序目录">
+          <el-input v-model="settings.pyDir" placeholder="Python程序目录"></el-input>
+          <el-button type="text" @click="downloadPy" :disabled="settings.pyDir!=undefined && settings.pyDir!=''">下载</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">提交</el-button>
@@ -45,7 +49,8 @@ export default {
         logLine: 50,
         logSaveDay: 7,
         gpuFlag: false,
-        updatePush: false
+        updatePush: false,
+        pyDir: ''
       }
     }
   },
@@ -53,6 +58,9 @@ export default {
     this.getSettings();
   },
   methods: {
+    downloadPy(){
+      window.open('https://github.com/zjwan461/jllama/releases/download/v1.0/py_env.zip', '_blank');
+    },
     checkUpdate() {
       this.$http.get('/api/check-update/cpp').then(res => {
         if (res.success === true) {

@@ -24,4 +24,5 @@ public class Settings {
     private int logSaveDay;
     private boolean gpuFlag;
     private boolean updatePush;
+    private String pyDir;
 }
