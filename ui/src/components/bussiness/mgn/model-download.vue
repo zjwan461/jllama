@@ -223,7 +223,7 @@ export default {
             line.files.forEach((item, index) => {
               if (item.percent.indexOf('100.00%') < 0) {
                 fetchFluxData('/api/mgn/dl-percent?fileId=' + item.id, (res) => {
-                  if(res && res.length > 0) {
+                  if(res && res.trim().length > 0) {
                     item.percent = res
                   }
                 });

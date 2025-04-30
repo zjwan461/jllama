@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Future;
 
 @RestController
 @RequestMapping("/api/mgn")
@@ -66,6 +67,8 @@ public class ModelMgnController {
 
     @Resource
     private MessageQueue messageQueue;
+
+    private Future future;
 
     @Auth
     @GetMapping("/list")
@@ -221,8 +224,11 @@ public class ModelMgnController {
         if (fileDownload == null) {
             return null;
         }
+        if (this.future != null) {
+            future.cancel(true);
+        }
         return Flux.create(fluxSink -> {
-            threadPoolTaskExecutor.submit(() -> {
+             future = threadPoolTaskExecutor.submit(() -> {
                 long last = new Date().getTime();
                 while (true) {
                     try {

@@ -131,12 +131,11 @@ export default {
     getNotifications() {
       fetchFluxData('/api/message', (res) => {
         let msg = JSON.parse(res)
-        console.log(msg)
         this.$notify({
           title: msg.title,
           message: msg.content,
           type: msg.status,
-          duration: 5000
+          duration: 10000
         })
       })
     },

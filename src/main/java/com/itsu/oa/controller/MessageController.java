@@ -1,10 +1,11 @@
 package com.itsu.oa.controller;
 
-import cn.hutool.json.JSONUtil;
 import com.itsu.oa.core.component.MessageQueue;
 import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
+import com.itsu.oa.util.MessagePushThread;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
  * @author jerry.su
  * @date 2025/4/13 13:03
  */
+@Slf4j
 @RestController
 public class MessageController {
 
@@ -30,22 +32,23 @@ public class MessageController {
     @Resource
     ThreadPoolTaskExecutor threadPool;
 
+    MessagePushThread messagePushThread = null;
+
     @Auth
     @GetMapping("/api/message")
     public Flux<String> message() {
         return Flux.create(fluxSink -> {
-            threadPool.submit(() -> {
-                while (true) {
-                    try {
-                        Msg msg = messageQueue.take();
-                        fluxSink.next(JSONUtil.toJsonStr(msg));
-                    } catch (Exception e) {
-                        fluxSink.error(e);
-                        break;
-                    }
-                }
-                fluxSink.complete();
-            });
+            if (messagePushThread == null) {
+                log.info("message push thread is not prepared");
+                messagePushThread = new MessagePushThread("msgThread-" + System.currentTimeMillis(), messageQueue, fluxSink);
+            } else if (!messagePushThread.isAlive() || messagePushThread.isInterrupted()) {
+                log.info("message push thread is not alive or is interrupted");
+            } else {
+                log.info("message push thread is active and running, will be interrupt and restart");
+                messagePushThread.interrupt();
+                messagePushThread = new MessagePushThread("msgThread-" + System.currentTimeMillis(), messageQueue, fluxSink);
+            }
+            messagePushThread.start();
         });
     }
 

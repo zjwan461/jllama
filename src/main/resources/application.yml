@@ -1,5 +1,8 @@
 server:
   port: 21434
+  servlet:
+    session:
+      timeout: 1D
 spring:
   servlet:
     multipart:

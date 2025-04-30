@@ -20,7 +20,7 @@
           <el-form-item label="日志保存天数">
             <el-input-number v-model="settings.logSaveDay"  placeholder=""></el-input-number>
           </el-form-item>
-          <el-form-item label="llama更新提醒">
+          <el-form-item label="LlamaCpp更新提醒">
             <el-switch v-model="settings.updatePush"></el-switch>
           </el-form-item>
           <el-form-item>
