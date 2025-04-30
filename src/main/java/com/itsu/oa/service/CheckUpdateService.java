@@ -1,8 +1,12 @@
 package com.itsu.oa.service;
 
-import com.itsu.oa.controller.resp.CheckCppUpdateResp;
+import com.itsu.oa.controller.resp.CheckUpdateResp;
 
 public interface CheckUpdateService {
 
-    CheckCppUpdateResp checkCppUpdate();
+    CheckUpdateResp checkCppUpdate();
+
+    CheckUpdateResp checkFactoryUpdate();
+
+    CheckUpdateResp checkSelfUpdate();
 }

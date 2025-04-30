@@ -52,6 +52,9 @@ public class AppConfig {
                 beanDefinitionBuilder.addPropertyValue("platform", sysInfo.getPlatform())
                         .addPropertyValue("osArch", sysInfo.getOsArch())
                         .addPropertyValue("gpuPlatform", sysInfo.getGpuPlatform())
+                        .addPropertyValue("cppVersion", sysInfo.getCppVersion())
+                        .addPropertyValue("factoryVersion", sysInfo.getFactoryVersion())
+                        .addPropertyValue("selfVersion", sysInfo.getSelfVersion())
                         .setScope(BeanDefinition.SCOPE_SINGLETON);
                 AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
                 registry.registerBeanDefinition("sysInfo", beanDefinition);

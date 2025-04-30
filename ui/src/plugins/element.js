@@ -48,6 +48,7 @@ import {
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm
 Vue.prototype.$notify = Notification
+Vue.prototype.$alert = MessageBox
 Vue.use(Button)
 Vue.use(Form)
 Vue.use(FormItem)

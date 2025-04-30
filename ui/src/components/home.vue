@@ -135,7 +135,7 @@ export default {
           title: msg.title,
           message: msg.content,
           type: msg.status,
-          duration: 10000
+          duration: 0
         })
       })
     },

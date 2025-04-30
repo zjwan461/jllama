@@ -5,11 +5,11 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CheckCppUpdateResp {
+public class CheckUpdateResp {
 
     private boolean update;
 
-    private String cppVersion;
+    private String version;
 
     private String updateUrl;
 

@@ -56,5 +56,7 @@ public class JllamaConfigProperties {
         private String cppXpath;
         private String factoryUrl;
         private String factoryXpath;
+        private String selfUrl;
+        private String selfXpath;
     }
 }

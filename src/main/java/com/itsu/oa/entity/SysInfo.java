@@ -15,4 +15,8 @@ public class SysInfo extends BaseEntity {
 
     private String cppVersion;
 
+    private String factoryVersion;
+
+    private String selfVersion;
+
 }

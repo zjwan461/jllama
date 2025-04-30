@@ -27,7 +27,7 @@ public class JsoupUtil {
     public static List<String> getValues(String url, String xpath) {
         Document document = null;
         try {
-            document = Jsoup.connect("https://github.com/ggml-org/llama.cpp/releases").get();
+            document = Jsoup.connect(url).get();
         } catch (IOException e) {
             throw new JException("尝试连接:" + url + "失败");
         }
