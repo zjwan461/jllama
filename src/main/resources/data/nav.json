@@ -40,6 +40,12 @@
         "title": "模型量化",
         "icon": "el-icon-edit",
         "href": "/tools/quantization"
+      },
+      {
+        "id": 33,
+        "title": "模型转换",
+        "icon": "el-icon-refresh",
+        "href": "/tools/convert"
       }
     ]
   }

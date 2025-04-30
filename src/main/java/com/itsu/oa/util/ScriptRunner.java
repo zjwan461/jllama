@@ -128,7 +128,7 @@ public class ScriptRunner {
 //        for (int i = 0; i < 2; i++) {
 
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
-        Future<ScriptResp> future = scriptRunner.runScript("C:\\Users\\1\\.conda\\envs\\llamafactory\\python",System.getProperty("user.dir") + "/scripts/convert_hf_to_gguf.py", "D:\\models\\Qwen\\Qwen3-1___7B","--outfile","D:\\models/1.gguf");
+        Future<ScriptResp> future = scriptRunner.runScript("C:\\Users\\1\\.conda\\envs\\llamafactory\\python",System.getProperty("user.dir") + "/scripts/convert_hf_to_gguf.py", "D:\\models\\Qwen\\Qwen3-1.7B","--outfile","D:\\models/1.gguf");
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\test.bat", SCRIPT_TYPE.BAT, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");
 //        TimeUnit.SECONDS.sleep(3);
 
