@@ -6,6 +6,4 @@ echo "Jllama is starting..."
 
 # 等待 5 秒
 sleep 5
-
-# 使用默认浏览器打开指定 URL
-xdg-open "http://127.0.0.1:21434/app"
+echo "Jllama is started."
