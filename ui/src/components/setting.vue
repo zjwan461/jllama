@@ -20,7 +20,7 @@
         <el-form-item label="模型日志保存天数">
           <el-input-number v-model="settings.logSaveDay" placeholder=""></el-input-number>
         </el-form-item>
-        <el-form-item label="LlamaCpp更新提醒">
+        <el-form-item label="更新提醒">
           <el-switch v-model="settings.updatePush"></el-switch> &nbsp;&nbsp;&nbsp;&nbsp;
           <el-button type="text" @click="checkUpdate">检查更新</el-button>
         </el-form-item>
@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     downloadPy(){
-      window.open('https://github.com/zjwan461/jllama/releases/download/v1.0/py_env.zip', '_blank');
+      window.open('https://github.com/zjwan461/jllama/releases', '_blank');
     },
     checkUpdate() {
       this.$http.get('/api/check-update/cpp').then(res => {
