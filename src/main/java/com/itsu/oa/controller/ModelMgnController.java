@@ -2,6 +2,7 @@ package com.itsu.oa.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -41,6 +42,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/mgn")
@@ -270,7 +272,11 @@ public class ModelMgnController {
     @Auth
     @GetMapping("/list-download-file")
     public R listFileInfo(Long modelId) {
-        List<FileDownload> fileDownloadList = fileDownloadService.list(new QueryWrapper<FileDownload>().eq("model_id", modelId));
+        List<FileDownload> fileDownloadList = fileDownloadService
+                .list(new QueryWrapper<FileDownload>().eq("model_id", modelId))
+                .stream()
+                .filter(x-> FileNameUtil.getSuffix(x.getFileName()).equals("gguf"))
+                .collect(Collectors.toList());
         return R.success(fileDownloadList);
     }
 
