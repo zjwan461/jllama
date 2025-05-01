@@ -1,23 +1,21 @@
 package com.itsu.oa.domain;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.itsu.oa.domain.server.*;
-import com.itsu.oa.util.Arith;
+import com.itsu.oa.entity.SysInfo;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.CentralProcessor.TickType;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.GraphicsCard;
 import oshi.hardware.HardwareAbstractionLayer;
-import oshi.software.os.FileSystem;
-import oshi.software.os.OSFileStore;
-import oshi.software.os.OperatingSystem;
 import oshi.util.Util;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -52,8 +50,8 @@ public class Server {
     /**
      * 磁盘相关信息
      */
-    private List<SysFile> sysFiles = new LinkedList<SysFile>();
-
+//    private List<SysFile> sysFiles = new LinkedList<SysFile>();
+    private JllamaInfo jllamaInfo;
 
     private List<Gpu> gpus = new ArrayList<Gpu>();
 
@@ -89,20 +87,20 @@ public class Server {
         this.sys = sys;
     }
 
-    public List<SysFile> getSysFiles() {
-        return sysFiles;
-    }
-
-    public void setSysFiles(List<SysFile> sysFiles) {
-        this.sysFiles = sysFiles;
-    }
-
     public List<Gpu> getGpus() {
         return gpus;
     }
 
     public void setGpus(List<Gpu> gpus) {
         this.gpus = gpus;
+    }
+
+    public JllamaInfo getJllamaInfo() {
+        return jllamaInfo;
+    }
+
+    public void setJllamaInfo(JllamaInfo jllamaInfo) {
+        this.jllamaInfo = jllamaInfo;
     }
 
     public void copyTo() throws Exception {
@@ -117,9 +115,17 @@ public class Server {
 
         setJvmInfo();
 
-        setSysFiles(si.getOperatingSystem());
+//        setSysFiles(si.getOperatingSystem());
 
         setGpuInfo();
+
+        setJllamaInfo();
+    }
+
+    private void setJllamaInfo() {
+        SysInfo sysInfo = SpringUtil.getBean("sysInfo", SysInfo.class);
+        jllamaInfo = new JllamaInfo();
+        BeanUtil.copyProperties(sysInfo, jllamaInfo);
     }
 
     private void setGpuInfo() {
@@ -207,27 +213,27 @@ public class Server {
         jvm.setHome(props.getProperty("java.home"));
     }
 
-    /**
-     * 设置磁盘信息
-     */
-    private void setSysFiles(OperatingSystem os) {
-        FileSystem fileSystem = os.getFileSystem();
-        List<OSFileStore> fsArray = fileSystem.getFileStores();
-        for (OSFileStore fs : fsArray) {
-            long free = fs.getUsableSpace();
-            long total = fs.getTotalSpace();
-            long used = total - free;
-            SysFile sysFile = new SysFile();
-            sysFile.setDirName(fs.getMount());
-            sysFile.setSysTypeName(fs.getType());
-            sysFile.setTypeName(fs.getName());
-            sysFile.setTotal(convertFileSize(total));
-            sysFile.setFree(convertFileSize(free));
-            sysFile.setUsed(convertFileSize(used));
-            sysFile.setUsage(Arith.mul(Arith.div(used, total, 4), 100));
-            sysFiles.add(sysFile);
-        }
-    }
+//    /**
+//     * 设置磁盘信息
+//     */
+//    private void setSysFiles(OperatingSystem os) {
+//        FileSystem fileSystem = os.getFileSystem();
+//        List<OSFileStore> fsArray = fileSystem.getFileStores();
+//        for (OSFileStore fs : fsArray) {
+//            long free = fs.getUsableSpace();
+//            long total = fs.getTotalSpace();
+//            long used = total - free;
+//            SysFile sysFile = new SysFile();
+//            sysFile.setDirName(fs.getMount());
+//            sysFile.setSysTypeName(fs.getType());
+//            sysFile.setTypeName(fs.getName());
+//            sysFile.setTotal(convertFileSize(total));
+//            sysFile.setFree(convertFileSize(free));
+//            sysFile.setUsed(convertFileSize(used));
+//            sysFile.setUsage(Arith.mul(Arith.div(used, total, 4), 100));
+//            sysFiles.add(sysFile);
+//        }
+//    }
 
     /**
      * 字节转换
