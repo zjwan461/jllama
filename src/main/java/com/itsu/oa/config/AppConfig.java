@@ -50,34 +50,7 @@ public class AppConfig {
         return new MessageQueue();
     }
 
-    @Bean
-    public ApplicationRunner applicationRunner(SysInfoMapper sysInfoMapper, BeanFactory beanFactory, Environment environment) {
-        return args -> {
-            SysInfo sysInfo = sysInfoMapper.selectOne(Wrappers.lambdaQuery(SysInfo.class).last("limit 1"));
-            if (sysInfo != null) {
-                BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-                BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SysInfo.class);
-                beanDefinitionBuilder.addPropertyValue("platform", sysInfo.getPlatform())
-                        .addPropertyValue("osArch", sysInfo.getOsArch())
-                        .addPropertyValue("gpuPlatform", sysInfo.getGpuPlatform())
-                        .addPropertyValue("cppVersion", sysInfo.getCppVersion())
-                        .addPropertyValue("factoryVersion", sysInfo.getFactoryVersion())
-                        .addPropertyValue("selfVersion", sysInfo.getSelfVersion())
-                        .setScope(BeanDefinition.SCOPE_SINGLETON);
-                AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
-                registry.registerBeanDefinition("sysInfo", beanDefinition);
-                System.out.println(SpringUtil.getBean("sysInfo", SysInfo.class));
-            }
 
-            try {
-                if (Boolean.TRUE.equals(environment.getProperty("startbrowser", Boolean.class))) {
-                    openBrowser("http://127.0.0.1:" + environment.getProperty("server.port") + "/app");
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        };
-    }
 
     public void openBrowser(String url) {
         // 检查当前系统是否支持 Desktop 类
