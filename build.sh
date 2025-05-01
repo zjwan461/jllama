@@ -37,8 +37,7 @@ mvn clean package -Dmaven.test.skip=true
 # 复制脚本文件
 if [ -d "$SCRIPTS_DIR" ]; then
     mkdir -p "$BUILD_DIR/scripts"
-    cp "$SCRIPTS_DIR"/* "$BUILD_DIR/scripts/"
-    chmod +x "$BUILD_DIR"/*
+    cp -rf "$SCRIPTS_DIR"/ "$BUILD_DIR/scripts/"
 fi
 
 # 复制配置文件
@@ -58,5 +57,8 @@ fi
 
 mv build/scripts/startup.bat build/startup.bat
 mv build/scripts/startup.sh build/startup.sh
+
+chmod +x build/startup.bat
+chmod +x build/startup.sh
 
 echo "build success"
