@@ -10,6 +10,7 @@ TARGET_DIR="target"
 JAR_FILE="jllama-0.0.1-SNAPSHOT.jar"
 TEMPLATE_FILE="application.yml.template"
 LLAMA_DIR="llama"
+FX_DIR="javafx-sdk"
 
 # 先删除UI静态文件目录和build目录
 rm -rf "$RESOURCES_DIR"
@@ -53,6 +54,10 @@ fi
 # 复制llmama目录
 if [ -d "$LLAMA_DIR" ]; then
     cp -r "$LLAMA_DIR" "$BUILD_DIR/$LLAMA_DIR"
+fi
+
+if [ -d "$FX_DIR" ]; then
+    cp -r "$FX_DIR" "$BUILD_DIR/$FX_DIR"
 fi
 
 mv build/scripts/startup.bat build/startup.bat

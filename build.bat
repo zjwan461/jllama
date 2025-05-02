@@ -39,8 +39,11 @@ copy application.yml.template build\application.yml
 rem 复制JAR文件到build目录
 copy target\jllama-0.0.1-SNAPSHOT.jar build\jllama.jar
 
-rem 复制llmama目录到build目录
+rem 复制llama目录到build目录
 xcopy /E /I llama build\llama
+
+rem 复制javafx-sdk目录到build目录
+xcopy /E /I javafx-sdk build\javafx-sdk
 
 move build\scripts\startup.bat build\
 move build\scripts\startup.sh build\
