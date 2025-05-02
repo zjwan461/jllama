@@ -74,7 +74,7 @@ public class JllamaApplication extends Application {
         root.getChildren().add(webView);
 
         // 创建场景，设置场景的宽度和高度
-        Scene scene = new Scene(root, 1280, 720);
+        Scene scene = new Scene(root, 1366, 768);
 
         // 设置舞台的标题
         primaryStage.setTitle("jllama");
