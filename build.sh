@@ -61,9 +61,11 @@ if [ -d "$FX_DIR" ]; then
 fi
 
 mv build/scripts/startup.bat build/startup.bat
-mv build/scripts/startup.sh build/startup.sh
+mv build/scripts/startup_macos.sh build/startup_macos.sh
+mv build/scripts/startup_linux.sh build/startup_linux.sh
 
 chmod +x build/startup.bat
-chmod +x build/startup.sh
+chmod +x build/startup_macos.sh
+chmod +x build/startup_linux.sh
 
 echo "build success"

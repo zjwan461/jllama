@@ -46,6 +46,7 @@ rem 复制javafx-sdk目录到build目录
 xcopy /E /I javafx-sdk build\javafx-sdk
 
 move build\scripts\startup.bat build\
-move build\scripts\startup.sh build\
+move build\scripts\startup_linux.sh build\
+move build\scripts\startup_macos.sh build\
 echo build success
 endlocal
