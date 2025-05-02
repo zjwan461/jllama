@@ -65,7 +65,6 @@ export default {
       return false;
     },
     downloadPy(){
-      // window.open('https://github.com/zjwan461/jllama/releases', '_blank');
       this.browser('https://github.com/zjwan461/jllama/releases')
     },
     checkUpdate() {
@@ -76,7 +75,7 @@ export default {
             this.$alert('llama.cpp有新的版本更新：' + data.version + '是否前往下载？', 'llama.cpp更新提醒', {
               confirmButtonText: '确定'
             }).then(() => {
-              window.open(data.updateUrl, '_blank');
+              this.browser(data.updateUrl)
             })
           }
         }
@@ -87,7 +86,7 @@ export default {
             this.$alert('LlamaFactory有新的版本更新：' + data.version + '是否前往下载？', 'LlamaFactory更新提醒', {
               confirmButtonText: '确定'
             }).then(() => {
-              window.open(data.updateUrl, '_blank');
+              this.browser(data.updateUrl)
             })
           }
         }
@@ -98,7 +97,7 @@ export default {
             this.$alert('jllama有新的版本更新：' + data.version + '是否前往下载？', 'jllama更新提醒', {
               confirmButtonText: '确定'
             }).then(() => {
-              window.open(data.updateUrl, '_blank');
+              this.browser(data.updateUrl)
             })
           }
 

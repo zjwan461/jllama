@@ -216,6 +216,12 @@ export default {
     this.getCommandList()
   },
   methods: {
+    browser(url) {
+      this.$http.get('/api/webview/browser?url=' + url).then(res => {
+        console.log(res);
+      })
+      return false;
+    },
     webui(row, index) {
       let argArray = JSON.parse(row.args);
       if (argArray.length > 0) {
@@ -229,7 +235,7 @@ export default {
         if (hostIndex !== -1) {
           host = argArray[hostIndex + 1] === '0.0.0.0' ? '127.0.0.1' : argArray[hostIndex + 1];
         }
-        window.open('http://' + host + ':' + port + '/', '_blank')
+        this.browser('http://' + host + ':' + port + '/')
       }
     },
     stop(row, index) {
