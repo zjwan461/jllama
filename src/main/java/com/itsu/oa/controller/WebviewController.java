@@ -35,7 +35,7 @@ public class WebviewController {
         if (plat == Platform.WINDOWS) {
             sysUtil.openBrowser(url, "cmd", "/c", "start");
         } else if (plat == Platform.MAC) {
-            sysUtil.openBrowser(url, "bash", "open");
+            sysUtil.openBrowser(url,  "open");
         } else {
             log.info("当前操作系统：{}不支持打开浏览器", plat);
         }
