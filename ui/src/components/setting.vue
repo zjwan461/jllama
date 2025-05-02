@@ -58,8 +58,15 @@ export default {
     this.getSettings();
   },
   methods: {
+    browser(url) {
+      this.$http.get('/api/webview/browser?url=' + url).then(res => {
+        console.log(res);
+      })
+      return false;
+    },
     downloadPy(){
-      window.open('https://github.com/zjwan461/jllama/releases', '_blank');
+      // window.open('https://github.com/zjwan461/jllama/releases', '_blank');
+      this.browser('https://github.com/zjwan461/jllama/releases')
     },
     checkUpdate() {
       this.$http.get('/api/check-update/cpp').then(res => {

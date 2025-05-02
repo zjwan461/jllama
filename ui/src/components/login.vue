@@ -64,7 +64,7 @@
           </el-button>
         </el-form-item>
         <div style="">
-          <a href="https://github.com/zjwan461/jllama" target="_blank" style="color: #01AAED">
+          <a @click="browser('https://github.com/zjwan461/jllama')" href="javascript:;" style="color: #01AAED">
             <svg t="1741331388471" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
                  p-id="5122" width="32" height="32">
               <path
@@ -72,7 +72,8 @@
                 fill="#000000" p-id="5123"></path>
             </svg>
           </a>
-          <a href="https://gitee.com/zjwan461/jllama" target="_blank" style="color: #01AAED;margin: 0 20px">
+          <a @click="browser('https://gitee.com/zjwan461/jllama')" type="text" href="javascript:;"
+             style="color: #01AAED;margin: 0 20px">
             <svg t="1741331433921" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
                  p-id="6147" width="32" height="32">
               <path
@@ -90,7 +91,6 @@
 </template>
 
 <script>
-import {Date} from 'core-js'
 import {getRequestBodyJson} from "@/common/common";
 
 export default {
@@ -128,6 +128,12 @@ export default {
 
   },
   methods: {
+    browser(url) {
+      this.$http.get('/api/webview/browser?url=' + url).then(res => {
+        console.log(res);
+      })
+      return false;
+    },
     getSysInfo() {
       this.$http.get("/api/base/sys-info").then(res => {
         if (res.data !== null) {
