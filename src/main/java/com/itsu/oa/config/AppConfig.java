@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.itsu.oa.core.component.MessageQueue;
+import com.itsu.oa.core.sys.Platform;
 import com.itsu.oa.entity.SysInfo;
 import com.itsu.oa.mapper.SysInfoMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Objects;
 
 @Configuration
 @MapperScan(basePackages = "com.itsu.oa.mapper")
@@ -71,7 +70,7 @@ public class AppConfig {
 
             try {
                 if (Boolean.TRUE.equals(environment.getProperty("startbrowser", Boolean.class))) {
-                    openBrowser("http://127.0.0.1:" + environment.getProperty("server.port") + "/app");
+                    openBrowser("http://127.0.0.1:" + environment.getProperty("server.port") + "/app", Platform.match(Objects.requireNonNull(sysInfo).getPlatform()));
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -79,30 +78,26 @@ public class AppConfig {
         };
     }
 
-    public void openBrowser(String url) {
-        // 检查当前系统是否支持 Desktop 类
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                // 创建 URI 对象
-                URI uri = new URI(url);
-                // 打开默认浏览器并访问指定的 URL
-                Desktop.getDesktop().browse(uri);
-            } catch (URISyntaxException | IOException e) {
-                // 处理异常
-                log.error(e.getMessage(), e);
+    public void openBrowser(String url, Platform platform) {
+
+        try {
+            ProcessBuilder processBuilder = null;
+            if (platform == Platform.WINDOWS) {
+                processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
+            } else if (platform == Platform.MAC) {
+                processBuilder = new ProcessBuilder("bash", "open", url);
+            } else {
+                log.warn("当前操作系统不支持打开浏览器");
+                return;
             }
-        } else {
-            log.info("当前系统不支持使用 Desktop 类打开浏览器。");
-            try {
-                ProcessBuilder processBuilder = new ProcessBuilder("open", url);
-                Process process = processBuilder.start();
-                int exitCode = process.waitFor();
-                if (exitCode != 0) {
-                    log.info("打开浏览器时出现错误，退出码: {}", exitCode);
-                }
-            } catch (IOException | InterruptedException e) {
-                log.error(e.getMessage(), e);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                log.info("打开浏览器时出现错误，退出码: {}", exitCode);
             }
+        } catch (IOException | InterruptedException e) {
+            log.error(e.getMessage(), e);
         }
+
     }
 }
