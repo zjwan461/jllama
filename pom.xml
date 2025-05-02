@@ -81,56 +81,56 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.controls.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-web</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.web.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.base.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.fxml.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.graphics.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.media.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx.swing.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swt</artifactId>
-            <version>17.0.15</version>
+            <version>21.0.7</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/javafx-sdk/lib/javafx-swt.jar</systemPath>
         </dependency>
