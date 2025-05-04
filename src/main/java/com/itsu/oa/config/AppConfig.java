@@ -85,7 +85,7 @@ public class AppConfig {
             if (platform == Platform.WINDOWS) {
                 processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
             } else if (platform == Platform.MAC) {
-                processBuilder = new ProcessBuilder("bash", "open", url);
+                processBuilder = new ProcessBuilder("open", url);
             } else {
                 log.warn("当前操作系统不支持打开浏览器");
                 return;
