@@ -169,7 +169,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.itsu.oa.JllamaApplication</mainClass>
+                    <mainClass>com.itsu.jllama.JllamaApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

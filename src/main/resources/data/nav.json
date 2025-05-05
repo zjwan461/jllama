@@ -1,9 +1,23 @@
 [
   {
     "id": 1,
-    "title": "模型进程",
+    "title": "进程管理",
     "icon": "el-icon-connection",
-    "href": "/watch"
+    "href": "/watch",
+    "children": [
+      {
+        "id": 11,
+        "title": "模型部署",
+        "icon": "el-icon-magic-stick",
+        "href": "/watch"
+      },
+      {
+        "id": 12,
+        "title": "运行历史",
+        "icon": "el-icon-data-line",
+        "href": "/history"
+      }
+    ]
   },
   {
     "id": 2,
@@ -12,8 +26,8 @@
     "children": [
       {
         "id": 21,
-        "title": "模型下载",
-        "icon": "el-icon-bottom",
+        "title": "模型仓库",
+        "icon": "el-icon-s-grid",
         "href": "/mgn/model-download"
       },
       {
