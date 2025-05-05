@@ -2,6 +2,7 @@ package com.itsu.jllama.config;
 
 import cn.hutool.extra.spring.EnableSpringUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.system.SystemUtil;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
@@ -26,7 +27,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.io.IOException;
-import java.util.Objects;
 
 @Configuration
 @MapperScan(basePackages = "com.itsu.jllama.mapper")
@@ -66,15 +66,18 @@ public class AppConfig {
                 AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
                 registry.registerBeanDefinition("sysInfo", beanDefinition);
                 System.out.println(SpringUtil.getBean("sysInfo", SysInfo.class));
-            }
 
+            }
             try {
                 if (Boolean.TRUE.equals(environment.getProperty("startbrowser", Boolean.class))) {
-                    openBrowser("http://127.0.0.1:" + environment.getProperty("server.port") + "/app", Platform.match(Objects.requireNonNull(sysInfo).getPlatform()));
+                    String osName = SystemUtil.getOsInfo().getName();
+                    Platform platform = Platform.match(osName);
+                    openBrowser("http://127.0.0.1:" + environment.getProperty("server.port") + "/app", platform);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
+
         };
     }
 

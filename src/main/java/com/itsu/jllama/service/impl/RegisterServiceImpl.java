@@ -2,6 +2,7 @@ package com.itsu.jllama.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.system.SystemUtil;
 import com.itsu.jllama.config.JllamaConfigProperties;
 import com.itsu.jllama.controller.req.RegisterReq;
@@ -15,6 +16,10 @@ import com.itsu.jllama.mapper.UserMapper;
 import com.itsu.jllama.service.RegisterService;
 import com.itsu.jllama.service.SettingsService;
 import com.itsu.jllama.util.CudaUtil;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,5 +96,18 @@ public class RegisterServiceImpl implements RegisterService {
         settings.setModelSaveDir(jllamaConfigProperties.getModel().getSaveDir());
         settings.setLogSaveDir(jllamaConfigProperties.getLlamaLogDir());
         settingsService.save(settings);
+
+        BeanDefinitionRegistry registry = (BeanDefinitionRegistry) SpringUtil.getBeanFactory();
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SysInfo.class);
+        beanDefinitionBuilder.addPropertyValue("platform", sysInfo.getPlatform())
+                .addPropertyValue("osArch", sysInfo.getOsArch())
+                .addPropertyValue("gpuPlatform", sysInfo.getGpuPlatform())
+                .addPropertyValue("cppVersion", sysInfo.getCppVersion())
+                .addPropertyValue("factoryVersion", sysInfo.getFactoryVersion())
+                .addPropertyValue("selfVersion", sysInfo.getSelfVersion())
+                .setScope(BeanDefinition.SCOPE_SINGLETON);
+        AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
+        registry.registerBeanDefinition("sysInfo", beanDefinition);
+        System.out.println(SpringUtil.getBean("sysInfo", SysInfo.class));
     }
 }

@@ -254,7 +254,9 @@ public class ToolsController {
     @Auth
     @GetMapping("/convert-list")
     public R convertList(int page, int limit) {
-        Page<ModelConvert> resPage = modelConvertService.page(new Page<>(page, limit), Wrappers.lambdaQuery(ModelConvert.class).orderByDesc(ModelConvert::getCreateTime));
+        Page<ModelConvert> resPage = modelConvertService.page(new Page<>(page, limit),
+                Wrappers.lambdaQuery(ModelConvert.class)
+                        .orderByDesc((SFunction<ModelConvert, Date>) BaseEntity::getCreateTime));
         return R.success(resPage);
     }
 }
