@@ -11,8 +11,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getTableData">查询</el-button>
-          <el-button type="success" @click="addNew">新增</el-button>
-          <el-button type="info" @click="history">历史</el-button>
+          <el-button type="success" @click="addNew">运行</el-button>
         </el-form-item>
       </el-form>
       <el-table
@@ -286,9 +285,6 @@ export default {
       this.log.logFilePath = argsArr[argsArr.length - 1]
       this.log.id = item.id
       this.loadLog(item.id)
-    },
-    history() {
-      this.$router.push('/history')
     },
     modelChange(modelId) {
       this.getFileList(modelId)

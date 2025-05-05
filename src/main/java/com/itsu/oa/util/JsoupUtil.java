@@ -27,7 +27,8 @@ public class JsoupUtil {
     public static List<String> getValues(String url, String xpath) {
         Document document = null;
         try {
-            document = Jsoup.connect(url).get();
+//            document = Jsoup.connect(url).get();
+            document = Jsoup.connect(url).proxy("192.168.31.67", 8082).get();
         } catch (IOException e) {
             throw new JException("尝试连接:" + url + "失败");
         }

@@ -60,6 +60,10 @@ const routes = [{
     path: '/tools/quantization',
     name: 'quantization',
     component: () => import('../components/bussiness/tools/quantization.vue')
+  },{
+    path: '/tools/convert',
+    name: 'convert',
+    component: () => import('../components/bussiness/tools/convert.vue')
   }
   ]
 }]

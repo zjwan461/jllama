@@ -1,6 +1,7 @@
 package com.itsu.oa.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,26 +9,30 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itsu.oa.config.JllamaConfigProperties;
+import com.itsu.oa.controller.req.ConvertReq;
 import com.itsu.oa.controller.req.QuantizeReq;
 import com.itsu.oa.controller.req.SplitMergeReq;
 import com.itsu.oa.core.component.MessageQueue;
-import com.itsu.oa.core.component.Msg;
 import com.itsu.oa.core.exception.JException;
 import com.itsu.oa.core.model.R;
 import com.itsu.oa.core.mvc.Auth;
 import com.itsu.oa.entity.BaseEntity;
 import com.itsu.oa.entity.GgufSplitMerge;
+import com.itsu.oa.entity.ModelConvert;
 import com.itsu.oa.entity.Quantize;
 import com.itsu.oa.service.GgufSplitMergeService;
+import com.itsu.oa.service.ModelConvertService;
 import com.itsu.oa.service.QuantizeService;
 import com.itsu.oa.service.SettingsService;
 import com.itsu.oa.util.LlamaCppRunner;
+import com.itsu.oa.util.ScriptRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
@@ -63,6 +68,12 @@ public class ToolsController {
 
     @Resource
     private JllamaConfigProperties jllamaConfigProperties;
+
+    @Resource
+    private ScriptRunner scriptRunner;
+
+    @Resource
+    private ModelConvertService modelConvertService;
 
     @Auth
     @GetMapping("/list-quantize-param")
@@ -200,36 +211,50 @@ public class ToolsController {
         ggufSplitMergeService.save(entity);
     }
 
-    private void handleAsync(String optionsDetail, LlamaCppRunner.LlamaCommandResp llamaCommandResp, LlamaCppRunner.LlamaCommandReq llamaCommandReq) {
-        threadPool.submit(() -> {
-            Msg msg = new Msg();
-            msg.setTitle("模型" + optionsDetail);
+    @Auth
+    @GetMapping("/script-list")
+    public R scriptList() {
+        File file = new File(System.getProperty("user.dir"), "scripts");
+        String[] list = file.list((dir, name) -> name.startsWith("convert_") && name.endsWith(".py"));
+        return R.success(list);
+    }
 
-            try {
-                Process process = llamaCommandResp.getProcess();
-                process.waitFor();
-                if (process.exitValue() == 0) {
-                    msg.setContent("模型" + optionsDetail + "成功");
-                    msg.setStatus(Msg.Status.success);
-                    log.info("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
-                } else {
-                    msg.setContent("模型" + optionsDetail + "失败");
-                    msg.setStatus(Msg.Status.error);
-                    log.error("execID: {} process Exit Code: {}", llamaCommandReq.getExecId(), process.exitValue());
-                }
-            } catch (InterruptedException e) {
-                msg.setContent("模型" + optionsDetail + "失败");
-                msg.setStatus(Msg.Status.error);
-                Thread.currentThread().interrupt();
-                log.error("execID: {} Thread interrupted", llamaCommandReq.getExecId(), e);
-            } finally {
-                llamaCppRunner.stop(llamaCommandReq.getExecId(), true);
-                try {
-                    messageQueue.put(msg);
-                } catch (InterruptedException e) {
-                    log.error(e.getMessage());
-                }
-            }
-        });
+    @Auth
+    @PostMapping("/convert")
+    public R convert(@RequestBody ConvertReq req) {
+        String pyDir = settingsService.getCachedSettings().getPyDir();
+        if (StrUtil.isBlank(pyDir) || !FileUtil.exist(pyDir)) {
+            throw new JException("使用此功能需要先设置Python运行目录");
+        }
+        if (StrUtil.isBlank(req.getScriptFile())) {
+            throw new JException("转换脚本必填");
+        }
+        if (StrUtil.isBlank(req.getInput())) {
+            throw new JException("转换源目录必填");
+        }
+        if (!FileUtil.exist(req.getInput())) {
+            throw new JException("转换源目录不存在");
+        }
+        if (StrUtil.isBlank(req.getOutput())) {
+            throw new JException("输出文件目录必填");
+        }
+        if (!FileNameUtil.getSuffix(req.getOutput()).equals("gguf")) {
+            throw new JException("输出文件格式必须是.gguf");
+        }
+        String execId = scriptRunner.runScript(pyDir + "/python", System.getProperty("user.dir") + "/scripts/" + req.getScriptFile(), req.isAsync(), req.getInput(), "--outfile", req.getOutput());
+        ModelConvert modelConvert = new ModelConvert();
+        modelConvert.setAsync(req.isAsync());
+        modelConvert.setInput(req.getInput());
+        modelConvert.setOutput(req.getOutput());
+        modelConvert.setScriptFile(req.getScriptFile());
+        modelConvertService.save(modelConvert);
+        return R.success(execId);
+    }
+
+    @Auth
+    @GetMapping("/convert-list")
+    public R convertList(int page, int limit) {
+        Page<ModelConvert> resPage = modelConvertService.page(new Page<>(page, limit), Wrappers.lambdaQuery(ModelConvert.class).orderByDesc(ModelConvert::getCreateTime));
+        return R.success(resPage);
     }
 }

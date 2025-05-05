@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.concurrent.Future;
 
 @Component
 @Slf4j
@@ -25,13 +24,13 @@ public class CudaUtil {
             scriptDir = "bash";
         }
         // Check if CUDA is available on the system
-        Future<ScriptRunner.ScriptResp> future = scriptRunner.runScript(scriptDir, System.getProperty("user.dir") + "/scripts/" + cudaVersionScript);
+
         try {
-            ScriptRunner.ScriptResp scriptResp = future.get();
-            return scriptResp.getProcess().waitFor() == 0;
+            scriptRunner.runScript(scriptDir, System.getProperty("user.dir") + "/scripts/" + cudaVersionScript,false);
+            return true;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            return false;
         }
-        return false;
+
     }
 }
