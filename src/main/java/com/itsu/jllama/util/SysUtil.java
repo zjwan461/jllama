@@ -1,4 +1,4 @@
-package com.itsu.oa.util;
+package com.itsu.jllama.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;

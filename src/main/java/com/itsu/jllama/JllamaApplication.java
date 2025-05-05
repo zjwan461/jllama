@@ -2,8 +2,8 @@ package com.itsu.jllama;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.itsu.oa.entity.SysInfo;
-import com.itsu.oa.mapper.SysInfoMapper;
+import com.itsu.jllama.entity.SysInfo;
+import com.itsu.jllama.mapper.SysInfoMapper;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;

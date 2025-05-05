@@ -1,12 +1,12 @@
-package com.itsu.oa.controller;
+package com.itsu.jllama.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.itsu.oa.core.model.R;
-import com.itsu.oa.core.mvc.Auth;
-import com.itsu.oa.core.sys.Platform;
-import com.itsu.oa.entity.SysInfo;
-import com.itsu.oa.mapper.SysInfoMapper;
-import com.itsu.oa.util.SysUtil;
+import com.itsu.jllama.core.model.R;
+import com.itsu.jllama.core.mvc.Auth;
+import com.itsu.jllama.core.sys.Platform;
+import com.itsu.jllama.entity.SysInfo;
+import com.itsu.jllama.mapper.SysInfoMapper;
+import com.itsu.jllama.util.SysUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
