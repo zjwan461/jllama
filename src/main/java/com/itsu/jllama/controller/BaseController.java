@@ -99,6 +99,7 @@ public class BaseController {
     }
 
     private void checkSettingsAndUpdateSysInfo(Settings settings) {
+        SysInfo sysInfo = SpringUtil.getBean(SysInfo.class);
         String llamaCppDir = settings.getLlamaCppDir();
         if (!FileUtil.exist(llamaCppDir)) {
             throw new JException("llama.cpp目录不存在");
@@ -107,11 +108,34 @@ public class BaseController {
             throw new JException("llama.cpp目录结构非法或已被破坏");
         }
         String pyDir = settings.getPyDir();
-        if (!FileUtil.exist(pyDir)) {
-            throw new JException("python运行环境目录不存在");
-        }
-        if (!FileUtil.exist(pyDir, "python.*")) {
-            throw new JException("python运行环境目录结构非法或已被破坏");
+        if (StrUtil.isNotBlank(pyDir)) {
+            if (!FileUtil.exist(pyDir)) {
+                throw new JException("python运行环境目录不存在");
+            }
+            if (!FileUtil.exist(pyDir, "python.*")) {
+                throw new JException("python运行环境目录结构非法或已被破坏");
+            }
+            String osName = SystemUtil.getOsInfo().getName();
+            Platform platform = Platform.match(osName);
+            String factoryVersion = null;
+            if (platform == Platform.WINDOWS) {
+                factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/Scripts/llamafactory-cli", "version", true, false));
+            } else {
+                factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/bin/llamafactory-cli", "version", true, false));
+            }
+
+            if (StrUtil.isBlank(factoryVersion)) {
+                throw new JException("非法的python运行环境目录");
+            }
+            Pattern pattern = Pattern.compile("[0-9].[0-9].[0-9]");
+            Matcher matcher = pattern.matcher(factoryVersion);
+            if (matcher.find()) {
+                factoryVersion = matcher.group();
+            } else {
+                log.error("cant not found LlamaFactory version");
+                factoryVersion = null;
+            }
+            sysInfo.setFactoryVersion(factoryVersion);
         }
         String verStr = StrUtil.trim(scriptRunner.runScriptAndRead(llamaCppDir + "/llama-server", "--version", false, true));
         System.out.println(verStr);
@@ -119,31 +143,7 @@ public class BaseController {
             throw new JException("非法的llama.cpp运行目录");
         }
         String cppVersion = verStr.substring("version:".length(), verStr.indexOf("(")).trim();
-        String osName = SystemUtil.getOsInfo().getName();
-        Platform platform = Platform.match(osName);
-        String factoryVersion = null;
-        if (platform == Platform.WINDOWS) {
-            factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/Scripts/llamafactory-cli", "version", true, false));
-        } else {
-            factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/bin/llamafactory-cli", "version", true, false));
-        }
-
-        if (StrUtil.isBlank(factoryVersion)) {
-            throw new JException("非法的python运行环境目录");
-        }
-
-        Pattern pattern = Pattern.compile("[0-9].[0-9].[0-9]");
-        Matcher matcher = pattern.matcher(factoryVersion);
-        if (matcher.find()) {
-            factoryVersion = matcher.group();
-        } else {
-            log.error("cant not found LlamaFactory version");
-            factoryVersion = null;
-        }
-
-        SysInfo sysInfo = SpringUtil.getBean(SysInfo.class);
         sysInfo.setCppVersion(cppVersion);
-        sysInfo.setFactoryVersion(factoryVersion);
         sysInfo.setUpdateTime(new Date());
         sysInfoMapper.updateById(sysInfo);
 
