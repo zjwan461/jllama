@@ -25,4 +25,6 @@ public class Settings {
     private boolean gpuFlag;
     private boolean updatePush;
     private String pyDir;
+    private String proxyIp;
+    private Integer proxyPort;
 }

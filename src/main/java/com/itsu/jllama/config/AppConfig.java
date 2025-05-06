@@ -56,7 +56,11 @@ public class AppConfig {
             if (sysInfo != null) {
                 BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
                 BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SysInfo.class);
-                beanDefinitionBuilder.addPropertyValue("platform", sysInfo.getPlatform())
+                beanDefinitionBuilder
+                        .addPropertyValue("id", sysInfo.getId())
+                        .addPropertyValue("createTime", sysInfo.getCreateTime())
+                        .addPropertyValue("updateTime", sysInfo.getUpdateTime())
+                        .addPropertyValue("platform", sysInfo.getPlatform())
                         .addPropertyValue("osArch", sysInfo.getOsArch())
                         .addPropertyValue("gpuPlatform", sysInfo.getGpuPlatform())
                         .addPropertyValue("cppVersion", sysInfo.getCppVersion())
