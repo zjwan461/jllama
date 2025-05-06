@@ -8,7 +8,7 @@
 
 ## 介绍
 
-Jllama 是一个基于Java构建的AI模型运行Web管理控制台。Jllama集成了 **模型下载**、**模型部署**、**服务监控**、**模型量化**、**权重文件拆分合并** 、**权重格式转换(todo)**、**模型微调(todo)** 等工具合集。让使用者无需掌握各种AI相关技术就能快速在本地运行模型进行模型推理、量化等操作。我的目标是做一个web版的[ollama](https://ollama.com) ,同时在它的基础上再做一些功能增强。
+Jllama 是一个基于Java构建的AI模型运行Web管理控制台。Jllama集成了 **模型下载**、**模型部署**、**服务监控**、**模型量化**、**权重文件拆分合并** 、**权重格式转换**、**模型微调(todo)** 等工具合集。让使用者无需掌握各种AI相关技术就能快速在本地运行模型进行模型推理、量化等操作。我的目标是做一个web版的[ollama](https://ollama.com) ,同时在它的基础上再做一些功能增强。
 
 ##  限制
 
@@ -22,7 +22,7 @@ Jllama 是一个基于Java构建的AI模型运行Web管理控制台。Jllama集�
 
 AI模型部署技术底座：[llama.cpp](https://github.com/ggml-org/llama.cpp)
 
-AI模型微调技术底座：[LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)  todo
+AI模型微调技术底座：[LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)  developing
 
 ## 功能介绍
 
