@@ -60,6 +60,11 @@
         "title": "模型转换",
         "icon": "el-icon-refresh",
         "href": "/tools/convert"
+      }, {
+        "id": 34,
+        "title": "模型微调",
+        "icon": "el-icon-edit-outline",
+        "href": "/tools/train"
       }
     ]
   }

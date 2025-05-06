@@ -64,6 +64,10 @@ const routes = [{
     path: '/tools/convert',
     name: 'convert',
     component: () => import('../components/bussiness/tools/convert.vue')
+  },{
+    path: '/tools/train',
+    name: 'train',
+    component: () => import('../components/bussiness/tools/train.vue')
   }
   ]
 }]
