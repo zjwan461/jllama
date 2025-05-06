@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
       <el-breadcrumb-item>模型管理</el-breadcrumb-item>
-      <el-breadcrumb-item>模型下载</el-breadcrumb-item>
+      <el-breadcrumb-item>模型仓库</el-breadcrumb-item>
     </el-breadcrumb>
 
     <el-card>
