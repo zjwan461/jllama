@@ -31,7 +31,7 @@ rem 使用Maven进行项目打包并跳过测试
 call mvn clean package -Dmaven.test.skip=true
 
 rem 复制scripts目录下的文件到build目录
-xcopy /Y scripts\* build\scripts\
+xcopy /E /I scripts build\scripts
 
 rem 复制application.yml.template到build目录并重命名为application.yml
 copy application.yml.template build\application.yml
