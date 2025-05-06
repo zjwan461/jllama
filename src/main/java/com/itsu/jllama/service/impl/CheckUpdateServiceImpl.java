@@ -6,6 +6,7 @@ import com.itsu.jllama.controller.resp.CheckUpdateResp;
 import com.itsu.jllama.entity.SysInfo;
 import com.itsu.jllama.mapper.SysInfoMapper;
 import com.itsu.jllama.service.CheckUpdateService;
+import com.itsu.jllama.service.SettingsService;
 import com.itsu.jllama.util.JsoupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,13 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
     @Resource
     private SysInfoMapper sysInfoMapper;
 
+    @Resource
+    private SettingsService settingsService;
+
     @Override
     public CheckUpdateResp checkCppUpdate() {
+        String proxyIp = settingsService.getCachedSettings().getProxyIp();
+        Integer proxyPort = settingsService.getCachedSettings().getProxyPort();
         JllamaConfigProperties.CheckUpdate checkUpdate = jllamaConfigProperties.getCheckUpdate();
         String checkUrl = checkUpdate.getCppUrl();
         String xpath = checkUpdate.getCppXpath();
@@ -34,7 +40,7 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
                 .last("limit 1"));
         if (Objects.nonNull(sysInfo)) {
             String cppVersion = sysInfo.getCppVersion();
-            String newVersion = JsoupUtil.getValue(checkUrl, xpath);
+            String newVersion = JsoupUtil.getValue(checkUrl, xpath, proxyIp, proxyPort);
             if (checkPureNumVersion(cppVersion, newVersion)) {
                 builder.update(true)
                         .version(newVersion)
@@ -49,6 +55,8 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
 
     @Override
     public CheckUpdateResp checkFactoryUpdate() {
+        String proxyIp = settingsService.getCachedSettings().getProxyIp();
+        Integer proxyPort = settingsService.getCachedSettings().getProxyPort();
         JllamaConfigProperties.CheckUpdate checkUpdate = jllamaConfigProperties.getCheckUpdate();
         String checkUrl = checkUpdate.getFactoryUrl();
         String xpath = checkUpdate.getFactoryXpath();
@@ -59,7 +67,7 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
                 .last("limit 1"));
         if (Objects.nonNull(sysInfo)) {
             String cppVersion = sysInfo.getFactoryVersion();
-            String newVersion = JsoupUtil.getValue(checkUrl, xpath);
+            String newVersion = JsoupUtil.getValue(checkUrl, xpath, proxyIp, proxyPort);
             if (checkFloatNumVersion(cppVersion, newVersion)) {
                 builder.update(true)
                         .version(newVersion)
@@ -74,6 +82,8 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
 
     @Override
     public CheckUpdateResp checkSelfUpdate() {
+        String proxyIp = settingsService.getCachedSettings().getProxyIp();
+        Integer proxyPort = settingsService.getCachedSettings().getProxyPort();
         JllamaConfigProperties.CheckUpdate checkUpdate = jllamaConfigProperties.getCheckUpdate();
         String checkUrl = checkUpdate.getSelfUrl();
         String xpath = checkUpdate.getSelfXpath();
@@ -84,7 +94,7 @@ public class CheckUpdateServiceImpl implements CheckUpdateService {
                 .last("limit 1"));
         if (Objects.nonNull(sysInfo)) {
             String cppVersion = sysInfo.getSelfVersion();
-            String newVersion = JsoupUtil.getValue(checkUrl, xpath);
+            String newVersion = JsoupUtil.getValue(checkUrl, xpath, proxyIp, proxyPort);
             if (checkFloatNumVersion(cppVersion, newVersion)) {
                 builder.update(true)
                         .version(newVersion)

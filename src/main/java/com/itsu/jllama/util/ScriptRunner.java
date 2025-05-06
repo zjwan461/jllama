@@ -1,7 +1,9 @@
 package com.itsu.jllama.util;
 
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.itsu.jllama.core.component.MessageQueue;
 import com.itsu.jllama.core.component.Msg;
 import com.itsu.jllama.core.exception.JException;
@@ -37,6 +39,35 @@ public class ScriptRunner {
         private String scriptDir;
         private String[] args;
         private Process process;
+    }
+
+    public String runScriptAndRead(String scriptDir, String script, boolean infoStream, boolean errStream, String... args) {
+        List<String> commandList = new ArrayList<>();
+        commandList.add(scriptDir);
+        commandList.add(script);
+        if (args != null && args.length > 0) {
+            commandList.addAll(Arrays.asList(args));
+        }
+        ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+        // 启动进程
+        Process process = null;
+        try {
+            process = processBuilder.start();
+            String infoStr = "";
+            if (infoStream) {
+                InputStream inputStream = process.getInputStream();
+                infoStr = IoUtil.readUtf8(inputStream);
+            }
+            String errStr = "";
+            if (errStream) {
+                InputStream errorStream = process.getErrorStream();
+                errStr = IoUtil.readUtf8(errorStream);
+            }
+            return infoStr + "\n" + errStr;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new JException("script 执行失败");
+        }
     }
 
 
@@ -182,7 +213,14 @@ public class ScriptRunner {
         threadPoolTaskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
         threadPoolTaskExecutor.setQueueCapacity(10000);
         threadPoolTaskExecutor.initialize();
-//        ScriptRunner scriptRunner = new ScriptRunner(threadPoolTaskExecutor);
+
+
+        ScriptRunner scriptRunner = new ScriptRunner(threadPoolTaskExecutor, new MessageQueue());
+
+        String resp = scriptRunner.runScriptAndRead("C:\\Users\\1\\.conda\\envs\\llamafactory\\Scripts\\llamafactory-cli", "version", true, false);
+        System.out.println(resp);
+        String res = scriptRunner.runScriptAndRead("D:\\Program Files\\llama-b5215-bin-win-avx-x64\\llama-cli", "--version", true, true);
+        System.out.println(StrUtil.trim(res));
 //        for (int i = 0; i < 2; i++) {
 
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");

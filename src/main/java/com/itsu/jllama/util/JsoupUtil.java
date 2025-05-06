@@ -15,20 +15,27 @@ import java.util.List;
 
 public class JsoupUtil {
 
-
     public static String getValue(String url, String xpath) {
-        List<String> values = getValues(url, xpath);
+        return getValue(url, xpath, null, null);
+    }
+
+
+    public static String getValue(String url, String xpath, String proxyId, Integer proxyPort) {
+        List<String> values = getValues(url, xpath, proxyId, proxyPort);
         if (CollUtil.isEmpty(values)) {
             return "";
         }
         return values.get(0);
     }
 
-    public static List<String> getValues(String url, String xpath) {
+    public static List<String> getValues(String url, String xpath, String proxyIp, Integer proxyPort) {
         Document document = null;
         try {
-//            document = Jsoup.connect(url).get();
-            document = Jsoup.connect(url).proxy("192.168.31.67", 1082).get();
+            if (StrUtil.isNotBlank(proxyIp) && proxyPort != null) {
+                document = Jsoup.connect(url).proxy(proxyIp, proxyPort).get();
+            } else {
+                document = Jsoup.connect(url).get();
+            }
         } catch (IOException e) {
             throw new JException("尝试连接:" + url + "失败");
         }

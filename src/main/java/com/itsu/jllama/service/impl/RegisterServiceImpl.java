@@ -87,7 +87,7 @@ public class RegisterServiceImpl implements RegisterService {
         if (jllamaConfigProperties.getGpu().isEnable()) {
             settings.setGpuFlag(true);
             settings.setLlamaCppDir(jllamaConfigProperties.getGpu().getLlamaDir());
-        }else {
+        } else {
             settings.setGpuFlag(false);
             String llamaCpuDir = jllamaConfigProperties.getLlamaCpuDir();
             String abbr = platform.getAbbr();
@@ -99,7 +99,11 @@ public class RegisterServiceImpl implements RegisterService {
 
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) SpringUtil.getBeanFactory();
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SysInfo.class);
-        beanDefinitionBuilder.addPropertyValue("platform", sysInfo.getPlatform())
+        beanDefinitionBuilder
+                .addPropertyValue("id", sysInfo.getId())
+                .addPropertyValue("createTime", sysInfo.getCreateTime())
+                .addPropertyValue("updateTime", sysInfo.getUpdateTime())
+                .addPropertyValue("platform", sysInfo.getPlatform())
                 .addPropertyValue("osArch", sysInfo.getOsArch())
                 .addPropertyValue("gpuPlatform", sysInfo.getGpuPlatform())
                 .addPropertyValue("cppVersion", sysInfo.getCppVersion())

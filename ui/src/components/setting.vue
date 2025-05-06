@@ -4,20 +4,20 @@
       <el-breadcrumb-item>设置</el-breadcrumb-item>
     </el-breadcrumb>
     <el-card>
-      <el-form :model="settings" class="setting-form" label-width="150px">
-        <el-form-item label="LlamaCpp程序目录">
+      <el-form :model="settings" :rules="rules" class="setting-form" label-width="150px">
+        <el-form-item label="LlamaCpp程序目录" prop="llamaCppDir">
           <el-input v-model="settings.llamaCppDir" placeholder=""></el-input>
         </el-form-item>
-        <el-form-item label="模型存放目录">
+        <el-form-item label="模型存放目录" prop="modelSaveDir">
           <el-input v-model="settings.modelSaveDir" placeholder=""></el-input>
         </el-form-item>
-        <el-form-item label="模型日志存放目录">
+        <el-form-item label="模型日志存放目录" prop="logSaveDir">
           <el-input v-model="settings.logSaveDir" placeholder=""></el-input>
         </el-form-item>
-        <el-form-item label="模型日志加载行数">
+        <el-form-item label="模型日志加载行数" prop="logLine">
           <el-input-number v-model="settings.logLine" placeholder=""></el-input-number>
         </el-form-item>
-        <el-form-item label="模型日志保存天数">
+        <el-form-item label="模型日志保存天数" prop="logSaveDay">
           <el-input-number v-model="settings.logSaveDay" placeholder=""></el-input-number>
         </el-form-item>
         <el-form-item label="更新提醒">
@@ -27,6 +27,12 @@
         <el-form-item label="Python程序目录">
           <el-input v-model="settings.pyDir" placeholder="Python程序目录"></el-input>
           <el-button type="text" @click="downloadPy" :disabled="settings.pyDir!=undefined && settings.pyDir!=''">下载</el-button>
+        </el-form-item>
+        <el-form-item label="代理IP地址">
+          <el-input v-model="settings.proxyIp" placeholder="代理IP地址"></el-input>
+        </el-form-item>
+        <el-form-item label="代理IP端口">
+          <el-input-number v-model="settings.proxyPort" placeholder="代理IP端口"></el-input-number>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">提交</el-button>
@@ -42,6 +48,23 @@ import { getRequestBodyJson } from "@/common/common";
 export default {
   data() {
     return {
+      rules: {
+        llamaCppDir: [
+          {required: true, message: 'llama.cpp程序目录必填', trigger: 'blur'}
+        ]
+        , modelSaveDir: [
+          {required: true, message: '模型保存目录必填', trigger: 'blur'}
+        ],
+        logSaveDir: [
+          {required: true, message: 'llama执行日志保存目录必填', trigger: 'blur'}
+        ],
+        logLine: [
+          {required: true, message: 'llama执行日志加载行数必填', trigger: 'blur'}
+        ],
+        logSaveDay: [
+          {required: true, message: 'llama执行日志保存天数必填', trigger: 'blur'}
+        ],
+      },
       settings: {
         llamaCppDir: '',
         modelSaveDir: '',
