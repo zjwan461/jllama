@@ -34,6 +34,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RequestMapping("/api/base")
@@ -170,11 +172,30 @@ public class BaseController {
         if (resp.isSuccess()) {
             factoryVersion = StrUtil.trim(resp.getInfoOutput());
             log.info("factoryVersion:{}", factoryVersion);
+            updateLlamaFactoryVersion(factoryVersion);
         }
         if (StrUtil.isBlank(factoryVersion)) {
             throw new JException("llamafactory环境异常");
         }
         return R.success();
+    }
+
+    private void updateLlamaFactoryVersion(String factoryVersion) {
+        if (StrUtil.isNotBlank(factoryVersion)) {
+            Pattern pattern = Pattern.compile("[0-9].[0-9].[0-9]");
+            Matcher matcher = pattern.matcher(factoryVersion);
+            if (matcher.find()) {
+                factoryVersion = matcher.group();
+            } else {
+                log.error("cant not found LlamaFactory version");
+                factoryVersion = null;
+            }
+
+            SysInfo sysInfo = SpringUtil.getBean(SysInfo.class);
+            sysInfo.setFactoryVersion(factoryVersion);
+            sysInfo.setUpdateTime(new Date());
+            sysInfoMapper.updateById(sysInfo);
+        }
     }
 
     @Auth
