@@ -3,7 +3,6 @@ package com.itsu.jllama.util;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import com.itsu.jllama.core.component.MessageQueue;
 import com.itsu.jllama.core.component.Msg;
 import com.itsu.jllama.core.exception.JException;
@@ -41,7 +40,15 @@ public class ScriptRunner {
         private Process process;
     }
 
-    public String runScriptAndRead(String scriptDir, String script, boolean infoStream, boolean errStream, String... args) {
+    @Data
+    public static class ScriptOutputResp {
+        private boolean success;
+        private String infoOutput;
+        private String errOutput;
+    }
+
+    public ScriptOutputResp runScriptAndRead(String scriptDir, String script, boolean infoStream, boolean errStream, String... args) {
+        ScriptOutputResp resp = new ScriptOutputResp();
         List<String> commandList = new ArrayList<>();
         commandList.add(scriptDir);
         commandList.add(script);
@@ -63,7 +70,11 @@ public class ScriptRunner {
                 InputStream errorStream = process.getErrorStream();
                 errStr = IoUtil.readUtf8(errorStream);
             }
-            return infoStr + "\n" + errStr;
+            int result = process.waitFor();
+            resp.setSuccess(result == 0);
+            resp.setInfoOutput(infoStr);
+            resp.setErrOutput(errStr);
+            return resp;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new JException("script 执行失败");
@@ -217,10 +228,10 @@ public class ScriptRunner {
 
         ScriptRunner scriptRunner = new ScriptRunner(threadPoolTaskExecutor, new MessageQueue());
 
-        String resp = scriptRunner.runScriptAndRead("C:\\Users\\1\\.conda\\envs\\llamafactory\\Scripts\\llamafactory-cli", "version", true, false);
+        ScriptOutputResp resp = scriptRunner.runScriptAndRead("C:\\Users\\1\\.conda\\envs\\llamafactory\\Scripts\\llamafactory-cli", "version", true, false);
         System.out.println(resp);
-        String res = scriptRunner.runScriptAndRead("D:\\Program Files\\llama-b5215-bin-win-avx-x64\\llama-cli", "--version", true, true);
-        System.out.println(StrUtil.trim(res));
+        resp = scriptRunner.runScriptAndRead("D:\\Program Files\\llama-b5215-bin-win-avx-x64\\llama-cli", "--version", true, true);
+        System.out.println(resp);
 //        for (int i = 0; i < 2; i++) {
 
 //        Future<ScriptResp> future = scriptRunner.runScript("D:\\workspaces\\java\\jllama\\scripts\\download.py", SCRIPT_TYPE.PYTHON, "--model", "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF", "--file_pattern", "DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf");

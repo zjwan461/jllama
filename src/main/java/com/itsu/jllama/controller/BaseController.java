@@ -22,13 +22,18 @@ import com.itsu.jllama.service.RegisterService;
 import com.itsu.jllama.service.SettingsService;
 import com.itsu.jllama.util.ScriptRunner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @RequestMapping("/api/base")
@@ -115,33 +120,16 @@ public class BaseController {
             if (!FileUtil.exist(pyDir, "python.*")) {
                 throw new JException("python运行环境目录结构非法或已被破坏");
             }
-            String osName = SystemUtil.getOsInfo().getName();
-            Platform platform = Platform.match(osName);
-            String factoryVersion = null;
-            if (platform == Platform.WINDOWS) {
-                factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/Scripts/llamafactory-cli", "version", true, false));
-            } else {
-                factoryVersion = StrUtil.trim(scriptRunner.runScriptAndRead(pyDir + "/bin/llamafactory-cli", "version", true, false));
+            ScriptRunner.ScriptOutputResp resp = scriptRunner.runScriptAndRead(pyDir + "/python", "--version", true, true);
+            if (!resp.isSuccess() || StrUtil.isBlank(resp.getInfoOutput())) {
+                throw new JException("非法的python运行目录");
             }
-
-            if (StrUtil.isBlank(factoryVersion)) {
-                throw new JException("非法的python运行环境目录");
-            }
-            Pattern pattern = Pattern.compile("[0-9].[0-9].[0-9]");
-            Matcher matcher = pattern.matcher(factoryVersion);
-            if (matcher.find()) {
-                factoryVersion = matcher.group();
-            } else {
-                log.error("cant not found LlamaFactory version");
-                factoryVersion = null;
-            }
-            sysInfo.setFactoryVersion(factoryVersion);
         }
-        String verStr = StrUtil.trim(scriptRunner.runScriptAndRead(llamaCppDir + "/llama-server", "--version", false, true));
-        System.out.println(verStr);
-        if (StrUtil.isBlank(verStr)) {
+        ScriptRunner.ScriptOutputResp resp = scriptRunner.runScriptAndRead(llamaCppDir + "/llama-server", "--version", false, true);
+        if (!resp.isSuccess() || StrUtil.isBlank(resp.getErrOutput())) {
             throw new JException("非法的llama.cpp运行目录");
         }
+        String verStr = resp.getErrOutput();
         String cppVersion = verStr.substring("version:".length(), verStr.indexOf("(")).trim();
         sysInfo.setCppVersion(cppVersion);
         sysInfo.setUpdateTime(new Date());
@@ -149,10 +137,70 @@ public class BaseController {
 
     }
 
-//    @Auth
-//    @GetMapping("/tools-md")
-//    public R toolsMd() {
-//        String mdStr = ResourceUtil.readUtf8Str("classpath:/data/tools.md");
-//        return R.success(mdStr);
-//    }
+
+    @Auth
+    @PostMapping("/check-convert-env")
+    public R checkConvertEnv() {
+        String pyDir = checkPythonEnvBase();
+        scriptRunner.runScript(pyDir + "/python", System.getProperty("user.dir") + "/scripts/convert_hf_to_gguf.py", false, "--help");
+        return R.success();
+    }
+
+    private String checkPythonEnvBase() {
+        Settings settings = settingsService.getCachedSettings();
+        String pyDir = settings.getPyDir();
+        if (StrUtil.isBlank(pyDir)) {
+            throw new JException("未设置Python运行环境");
+        }
+        return pyDir;
+    }
+
+    @Auth
+    @PostMapping("/check-llamaFactory-env")
+    public R checkLlamaFactoryEnv() {
+        String pyDir = checkPythonEnvBase();
+        Platform platform = Platform.match(SystemUtil.getOsInfo().getName());
+        String factoryVersion = "";
+        ScriptRunner.ScriptOutputResp resp;
+        if (platform == Platform.WINDOWS) {
+            resp = scriptRunner.runScriptAndRead(pyDir + "/Scripts/llamafactory-cli", "version", true, false);
+        } else {
+            resp = scriptRunner.runScriptAndRead(pyDir + "/bin/llamafactory-cli", "version", true, false);
+        }
+        if (resp.isSuccess()) {
+            factoryVersion = StrUtil.trim(resp.getInfoOutput());
+            log.info("factoryVersion:{}", factoryVersion);
+        }
+        if (StrUtil.isBlank(factoryVersion)) {
+            throw new JException("llamafactory环境异常");
+        }
+        return R.success();
+    }
+
+    @Auth
+    @GetMapping("/env_init")
+    public R envInit() {
+        return R.success(ResourceUtil.readUtf8Str("data/env_init.md"));
+    }
+
+    @Auth
+    @GetMapping("/download-requirements")
+    public ResponseEntity<org.springframework.core.io.Resource> downloadFile() throws FileNotFoundException {
+        // 要下载的文件路径，你可以根据实际情况修改
+        File file = ResourceUtils.getFile("classpath:data/requirements.txt");
+        FileSystemResource resource = new FileSystemResource(file);
+
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(file.length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
 }
