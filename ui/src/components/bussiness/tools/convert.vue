@@ -7,8 +7,10 @@
     <el-row>
       <el-col :span="12" class="card-box">
         <el-card class="card">
+          <el-alert :title="tips" type="warning">
+          </el-alert>
           <div slot="header"><span><i class="el-icon-edit"></i> 模型格式转换</span></div>
-          <el-form ref="form" :rules="rules" :model="form" label-width="130px">
+          <el-form ref="form" :rules="rules" :model="form" label-width="130px" style="margin: 20px 0;">
             <el-form-item label="转换脚本" prop="scriptFile">
               <el-select v-model="form.scriptFile" placeholder="被转换模型目录">
                 <el-option v-for="item in scriptFileList" :key="item" :label="item" :value="item"></el-option>
@@ -56,8 +58,8 @@
           </el-table>
           <div class="block">
             <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                           :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize"
-                           layout="total, sizes, prev, pager, next, jumper" :total="total">
+              :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize"
+              layout="total, sizes, prev, pager, next, jumper" :total="total">
             </el-pagination>
           </div>
         </el-card>
@@ -67,12 +69,13 @@
 </template>
 
 <script>
-import {getRequestBodyJson} from "@/common/common";
+import { getRequestBodyJson } from "@/common/common";
 
 export default {
   name: "convert",
   data() {
     return {
+      tips: '要使用此功能必须先在设置中配置Python运行环境，并按照指引按照convert依赖',
       total: 0,
       pageSize: 5,
       pageSizes: [5, 10, 20],
@@ -87,13 +90,13 @@ export default {
       },
       rules: {
         scriptFile: [
-          {required: true, message: '请选择转换脚本', trigger: 'blur'}
+          { required: true, message: '请选择转换脚本', trigger: 'blur' }
         ]
         , input: [
-          {required: true, message: '请输入被转换模型目录', trigger: 'blur'}
+          { required: true, message: '请输入被转换模型目录', trigger: 'blur' }
         ],
         output: [
-          {required: true, message: '请输入转换输出文件', trigger: 'blur'}
+          { required: true, message: '请输入转换输出文件', trigger: 'blur' }
         ],
       },
     }
@@ -101,8 +104,12 @@ export default {
   created() {
     this.getScriptFile()
     this.getTableData()
+    this.showTips()
   },
   methods: {
+    showTips() {
+
+    },
     getScriptFile() {
       this.$http.get('/api/tools/script-list').then(res => {
         if (res.success === true) {

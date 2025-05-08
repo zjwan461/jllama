@@ -65,7 +65,9 @@
 <script>
 import { getRequestBodyJson } from "@/common/common";
 import MarkdownIt from 'markdown-it'
-
+const md = new MarkdownIt({
+  breaks: true // 转换换行符为<br>，更多配置可查看官网
+})
 export default {
   data() {
     return {
@@ -101,9 +103,6 @@ export default {
   },
   computed: {
     markdownItContent() {
-      const md = new MarkdownIt({
-        breaks: true // 转换换行符为<br>，更多配置可查看官网
-      })
       return md.render(this.envInit)
     }
   },
@@ -201,10 +200,10 @@ export default {
       })
     },
     downloadLlamaFactoryDep() {
-      window.open('https://github.com/hiyouga/LLaMA-Factory/releases/download/v0.9.2/llamafactory-0.9.2-py3-none-any.whl','_blank')
+      window.open('https://github.com/hiyouga/LLaMA-Factory/releases/download/v0.9.2/llamafactory-0.9.2-py3-none-any.whl', '_blank')
     },
-    downloadConvertDep(){
-      window.open('/api/base/download-requirements','_blank')
+    downloadConvertDep() {
+      window.open('/api/base/download-requirements', '_blank')
     }
   },
 }

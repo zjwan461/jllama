@@ -81,6 +81,44 @@ public class ScriptRunner {
         }
     }
 
+    public Future<ScriptResp> runLlamaFactory(String processId, String scriptDir, String script, String... env) {
+        ScriptResp scriptResp = new ScriptResp();
+        scriptResp.setScript(script);
+        scriptResp.setScriptDir(scriptDir);
+        List<String> commandList = new ArrayList<>();
+        commandList.add(scriptDir);
+        commandList.add(script);
+        Future<ScriptResp> future = threadPool.submit(() -> {
+            try {
+                // 创建 ProcessBuilder 对象，指定要执行的命令
+                ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+                // 设置环境变量
+                if (!Objects.isNull(env)) {
+                    Map<String, String> environment = processBuilder.environment();
+                    for (String item : env) {
+                        String[] envParam = item.split("=");
+                        if (envParam.length == 2) {
+                            environment.put(envParam[0], envParam[1]);
+                        }
+                    }
+                }
+                // 启动进程
+                Process process = processBuilder.start();
+                scriptResp.setProcess(process);
+                // 获取脚本执行的输出流
+                logScript(process, script);
+
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                scriptResp.setCode(-1);
+            } finally {
+                this.handleAsyncMsgPush("执行脚本", scriptResp.getProcess(), processId);
+            }
+            return scriptResp;
+        });
+        futures.put(processId, future);
+        return future;
+    }
 
     public String runScript(String scriptDir, String script, boolean async, String... args) {
         String scheduleKey = generateScheduleKey(script, args);

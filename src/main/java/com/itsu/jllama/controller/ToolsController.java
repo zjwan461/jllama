@@ -12,6 +12,7 @@ import com.itsu.jllama.config.JllamaConfigProperties;
 import com.itsu.jllama.controller.req.ConvertReq;
 import com.itsu.jllama.controller.req.QuantizeReq;
 import com.itsu.jllama.controller.req.SplitMergeReq;
+import com.itsu.jllama.controller.req.TrainReq;
 import com.itsu.jllama.core.component.MessageQueue;
 import com.itsu.jllama.core.exception.JException;
 import com.itsu.jllama.core.model.R;
@@ -20,10 +21,7 @@ import com.itsu.jllama.entity.BaseEntity;
 import com.itsu.jllama.entity.GgufSplitMerge;
 import com.itsu.jllama.entity.ModelConvert;
 import com.itsu.jllama.entity.Quantize;
-import com.itsu.jllama.service.GgufSplitMergeService;
-import com.itsu.jllama.service.ModelConvertService;
-import com.itsu.jllama.service.QuantizeService;
-import com.itsu.jllama.service.SettingsService;
+import com.itsu.jllama.service.*;
 import com.itsu.jllama.util.LlamaCppRunner;
 import com.itsu.jllama.util.ScriptRunner;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +72,9 @@ public class ToolsController {
 
     @Resource
     private ModelConvertService modelConvertService;
+
+    @Resource
+    private TrainService trainService;
 
     @Auth
     @GetMapping("/list-quantize-param")
@@ -258,5 +259,16 @@ public class ToolsController {
                 Wrappers.lambdaQuery(ModelConvert.class)
                         .orderByDesc((SFunction<ModelConvert, Date>) BaseEntity::getCreateTime));
         return R.success(resPage);
+    }
+
+    @Auth
+    @PostMapping("/train/command-preview")
+    public R previewTrainCommand(@RequestBody TrainReq trainReq) {
+        if (!trainService.isLlamaFactoryWebUiRunning()) {
+            trainService.startLlamaFactoryWebUi();
+            throw new JException("LlamaFactory服务启动中...请稍后再试");
+        }
+        String resp = trainService.getPreviewCommand(trainReq);
+        return R.success(resp);
     }
 }

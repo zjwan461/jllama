@@ -41,7 +41,10 @@ import {
   Loading,
   Notification, RadioGroup,
   Step,
-  Steps
+  Steps,
+  Alert,
+  Tabs,
+  TabPane
 
 } from 'element-ui'
 
@@ -89,3 +92,6 @@ Vue.use(Loading)
 Vue.use(RadioGroup)
 Vue.use(Step)
 Vue.use(Steps)
+Vue.use(Alert)
+Vue.use(Tabs)
+Vue.use(TabPane)
