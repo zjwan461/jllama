@@ -6,7 +6,7 @@
     # windows
     ${python_env}/Scripts/pip install -r requirements.txt
     # linux & mac
-    ${python_env}/bin/pip install -r requirements.txt
+    ${python_env}/pip install -r requirements.txt
     ```
 ## 安装LlamaFactory运行环境
 1. 下载Python运行环境
@@ -16,5 +16,5 @@
     # windows
     ${python_env}/Scripts/pip install llamafactory-x.x.x-py3-none-any.whl
     # linux & mac
-    ${python_env}/bin/pip install llamafactory-x.x.x-py3-none-any.whl
+    ${python_env}/pip install llamafactory-x.x.x-py3-none-any.whl
     ```

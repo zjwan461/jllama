@@ -120,6 +120,7 @@ export default {
     }
   },
   created() {
+    this.getLlamaFactoryUrl()
   },
   computed: {
     markdownItContent() {
