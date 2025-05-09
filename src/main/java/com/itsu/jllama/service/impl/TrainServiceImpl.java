@@ -41,7 +41,7 @@ public class TrainServiceImpl implements TrainService {
         if (platform == Platform.WINDOWS) {
             scriptPath = scriptPath + "/Scripts/llamafactory-cli";
         } else {
-            scriptPath = scriptPath + "/bin/llamafactory-cli";
+            scriptPath = scriptPath + "/llamafactory-cli";
         }
         scriptRunner.runLlamaFactory(LLAMA_FACTORY_WEBUI_PROCESS_ID, scriptPath, "webui", "GRADIO_SERVER_PORT=7860");
     }

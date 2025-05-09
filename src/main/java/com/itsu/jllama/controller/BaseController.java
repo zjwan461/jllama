@@ -167,7 +167,7 @@ public class BaseController {
         if (platform == Platform.WINDOWS) {
             resp = scriptRunner.runScriptAndRead(pyDir + "/Scripts/llamafactory-cli", "version", true, false);
         } else {
-            resp = scriptRunner.runScriptAndRead(pyDir + "/bin/llamafactory-cli", "version", true, false);
+            resp = scriptRunner.runScriptAndRead(pyDir + "/llamafactory-cli", "version", true, false);
         }
         if (resp.isSuccess()) {
             factoryVersion = StrUtil.trim(resp.getInfoOutput());
