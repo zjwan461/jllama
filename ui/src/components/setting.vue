@@ -6,7 +6,7 @@
     <el-card>
       <el-row>
         <el-col :span="12">
-          <el-form :model="settings" :rules="rules" class="setting-form" label-width="150px">
+          <el-form :model="settings" :rules="rules" class="setting-form" label-width="160px">
             <el-form-item label="LlamaCpp程序目录" prop="llamaCppDir">
               <el-input v-model="settings.llamaCppDir" placeholder=""></el-input>
             </el-form-item>

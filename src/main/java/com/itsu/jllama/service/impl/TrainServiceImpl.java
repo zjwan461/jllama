@@ -12,6 +12,7 @@ import com.itsu.jllama.service.SettingsService;
 import com.itsu.jllama.service.TrainService;
 import com.itsu.jllama.util.GradioUtil;
 import com.itsu.jllama.util.ScriptRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -19,6 +20,7 @@ import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+@Slf4j
 @Service
 public class TrainServiceImpl implements TrainService {
 
@@ -175,7 +177,12 @@ public class TrainServiceImpl implements TrainService {
     public String getLlamaFactoryWebUiStatus() {
         Future<ScriptRunner.ScriptResp> future = scriptRunner.getRunningScriptFuture(LLAMA_FACTORY_WEBUI_PROCESS_ID);
         if (future != null && !future.isCancelled()) {
-            String resp = GradioUtil.api(this.getLlamaFactoryWebUiUrl() + "/gradio_api/call/get_model_info", pingData);
+            String resp = null;
+            try {
+                resp = GradioUtil.api(this.getLlamaFactoryWebUiUrl() + "/gradio_api/call/get_model_info", pingData);
+            } catch (Exception e) {
+                log.info("request gradio fail, may not started finished", e);
+            }
             return StrUtil.isNotBlank(resp) ? STARTED_STATUS : STARTING_STATUS;
         }
         return STOP_STATUS;

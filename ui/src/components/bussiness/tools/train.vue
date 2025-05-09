@@ -75,7 +75,7 @@ export default {
     return {
       llamaFactoryUrl: '',
       commandPreview: '',
-      tips: '要使用此功能必须先在设置中配置Python运行环境，并按照指引按照LlamaFactory依赖',
+      tips: '要使用此功能必须先在设置中配置Python运行环境，并按照指引安装LlamaFactory依赖',
       activeName: 'simple',
       form: {
         modelName: '',
