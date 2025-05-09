@@ -132,8 +132,16 @@ public class BaseController {
             throw new JException("非法的llama.cpp运行目录");
         }
         String verStr = resp.getErrOutput();
-        String cppVersion = verStr.substring("version:".length(), verStr.indexOf("(")).trim();
-        sysInfo.setCppVersion(cppVersion);
+        String regex = "version: (\\d+)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(verStr);
+        if (matcher.find()) {
+            String version = matcher.group(1).trim();
+            sysInfo.setCppVersion(version);
+            log.info("提取的版本号: {}", version);
+        } else {
+            log.info("未找到匹配的版本号");
+        }
         sysInfo.setUpdateTime(new Date());
         sysInfoMapper.updateById(sysInfo);
 
