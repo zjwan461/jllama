@@ -27,4 +27,5 @@ public class Settings {
     private String pyDir;
     private String proxyIp;
     private Integer proxyPort;
+    private Integer factoryPort;
 }

@@ -16,4 +16,8 @@ public interface TrainService {
     Flux<String> runTrain(TrainReq trainReq);
 
     Map<String, Object> buildGradioTrainData(TrainReq trainReq);
+
+    String getLlamaFactoryWebUiStatus();
+
+    String getLlamaFactoryWebUiUrl();
 }

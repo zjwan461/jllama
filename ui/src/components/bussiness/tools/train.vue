@@ -73,6 +73,7 @@ export default {
   name: "train",
   data() {
     return {
+      llamaFactoryUrl: '',
       commandPreview: '',
       tips: '要使用此功能必须先在设置中配置Python运行环境，并按照指引按照LlamaFactory依赖',
       activeName: 'simple',
@@ -139,7 +140,7 @@ export default {
       this.$refs[form].validate((valid) => {
         if (valid) {
           this.$http.post('/api/tools/train/command-preview', getRequestBodyJson(this.form)).then(res => {
-            if(res.success === true) {
+            if (res.success === true) {
               this.commandPreview = res.data
             }
           })
@@ -147,7 +148,16 @@ export default {
       })
     },
     openOrigin() {
-      window.open('http://127.0.0.1:7860','_blank')
+      if (this.llamaFactoryUrl.length > 0) {
+        window.open(this.llamaFactoryUrl, '_blank')
+      }
+    },
+    getLlamaFactoryUrl() {
+      this.$http.get('/api/tools/train/llamafactory-url').then(res => {
+        if (res.success === true) {
+          this.llamaFactoryUrl = res.data
+        }
+      })
     }
   }
 }

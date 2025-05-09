@@ -22,6 +22,7 @@ import com.itsu.jllama.entity.GgufSplitMerge;
 import com.itsu.jllama.entity.ModelConvert;
 import com.itsu.jllama.entity.Quantize;
 import com.itsu.jllama.service.*;
+import com.itsu.jllama.service.impl.TrainServiceImpl;
 import com.itsu.jllama.util.LlamaCppRunner;
 import com.itsu.jllama.util.ScriptRunner;
 import lombok.extern.slf4j.Slf4j;
@@ -264,11 +265,20 @@ public class ToolsController {
     @Auth
     @PostMapping("/train/command-preview")
     public R previewTrainCommand(@RequestBody TrainReq trainReq) {
-        if (!trainService.isLlamaFactoryWebUiRunning()) {
+        String status = trainService.getLlamaFactoryWebUiStatus();
+        if (TrainServiceImpl.STOP_STATUS.equals(status)) {
             trainService.startLlamaFactoryWebUi();
+            throw new JException("LlamaFactory服务启动中...请稍后再试");
+        } else if (TrainServiceImpl.STARTING_STATUS.equals(status)) {
             throw new JException("LlamaFactory服务启动中...请稍后再试");
         }
         String resp = trainService.getPreviewCommand(trainReq);
         return R.success(resp);
+    }
+
+    @Auth
+    @GetMapping("/train/llamafactory-url")
+    public R llamaFactoryUrl() {
+        return R.success(trainService.getLlamaFactoryWebUiUrl());
     }
 }

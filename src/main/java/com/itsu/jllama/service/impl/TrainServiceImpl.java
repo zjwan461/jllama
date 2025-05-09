@@ -22,6 +22,10 @@ import java.util.concurrent.Future;
 @Service
 public class TrainServiceImpl implements TrainService {
 
+    public static final String STOP_STATUS = "STOP";
+    public static final String STARTING_STATUS = "STARTING";
+    public static final String STARTED_STATUS = "STARTED";
+
     public static final String LLAMA_FACTORY_WEBUI_PROCESS_ID = "LLAMA_FACTORY_WEBUI_PROCESS";
 
     private static final Map<String, Object> pingData = JSONUtil.parseObj("{\"data\":[\"Aya-23-8B-Chat\"]}");
@@ -43,13 +47,19 @@ public class TrainServiceImpl implements TrainService {
         } else {
             scriptPath = scriptPath + "/llamafactory-cli";
         }
-        scriptRunner.runLlamaFactory(LLAMA_FACTORY_WEBUI_PROCESS_ID, scriptPath, "webui", "GRADIO_SERVER_PORT=7860");
+        Integer factoryPort = settings.getFactoryPort();
+        if (factoryPort != null) {
+            scriptRunner.runLlamaFactory(LLAMA_FACTORY_WEBUI_PROCESS_ID, scriptPath, "webui", "GRADIO_SERVER_PORT=" + factoryPort);
+        } else {
+            scriptRunner.runLlamaFactory(LLAMA_FACTORY_WEBUI_PROCESS_ID, scriptPath, "webui");
+        }
     }
 
     @Override
     public String getPreviewCommand(TrainReq trainReq) {
         Map<String, Object> map = buildGradioTrainData(trainReq);
-        String result = GradioUtil.api("http://127.0.0.1:7860/gradio_api/call/preview_train", map);
+        String urlPrefix = this.getLlamaFactoryWebUiUrl();
+        String result = GradioUtil.api(urlPrefix + "/gradio_api/call/preview_train", map);
         JSONArray array = JSONUtil.parseArray(result);
         if (!array.isEmpty()) {
             return (String) array.get(0);
@@ -59,18 +69,13 @@ public class TrainServiceImpl implements TrainService {
 
     @Override
     public boolean isLlamaFactoryWebUiRunning() {
-        Future<ScriptRunner.ScriptResp> future = scriptRunner.getRunningScriptFuture(LLAMA_FACTORY_WEBUI_PROCESS_ID);
-        if (future != null && !future.isCancelled()) {
-            String resp = GradioUtil.api("http://127.0.0.1:7860/gradio_api/call/get_model_info", pingData);
-            return StrUtil.isNotBlank(resp);
-        }
-        return false;
+        return STARTED_STATUS.equals(this.getLlamaFactoryWebUiStatus());
     }
 
     @Override
     public Flux<String> runTrain(TrainReq trainReq) {
         Map<String, Object> map = buildGradioTrainData(trainReq);
-        return GradioUtil.apiWithFlux("http://127.0.0.1:7860/gradio_api/call/run_train", map);
+        return GradioUtil.apiWithFlux(this.getLlamaFactoryWebUiUrl() + "/gradio_api/call/run_train", map);
     }
 
     @Override
@@ -166,5 +171,19 @@ public class TrainServiceImpl implements TrainService {
         return JSONUtil.parseObj(originJson);
     }
 
+    @Override
+    public String getLlamaFactoryWebUiStatus() {
+        Future<ScriptRunner.ScriptResp> future = scriptRunner.getRunningScriptFuture(LLAMA_FACTORY_WEBUI_PROCESS_ID);
+        if (future != null && !future.isCancelled()) {
+            String resp = GradioUtil.api(this.getLlamaFactoryWebUiUrl() + "/gradio_api/call/get_model_info", pingData);
+            return StrUtil.isNotBlank(resp) ? STARTED_STATUS : STARTING_STATUS;
+        }
+        return STOP_STATUS;
+    }
 
+    @Override
+    public String getLlamaFactoryWebUiUrl() {
+        Settings settings = settingsService.getCachedSettings();
+        return "http://127.0.0.1:" + settings.getFactoryPort();
+    }
 }

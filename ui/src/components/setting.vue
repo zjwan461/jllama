@@ -31,11 +31,14 @@
               <el-button type="text" @click="downloadPy"
                 :disabled="settings.pyDir != undefined && settings.pyDir != ''">下载</el-button>
             </el-form-item>
-            <el-form-item label="代理IP地址">
-              <el-input v-model="settings.proxyIp" placeholder="代理IP地址"></el-input>
+            <el-form-item label="网络代理IP地址">
+              <el-input v-model="settings.proxyIp" placeholder="网络代理IP地址"></el-input>
             </el-form-item>
-            <el-form-item label="代理IP端口">
-              <el-input-number v-model="settings.proxyPort" placeholder="代理IP端口"></el-input-number>
+            <el-form-item label="网络代理IP端口">
+              <el-input-number v-model="settings.proxyPort"></el-input-number>
+            </el-form-item>
+            <el-form-item label="LlamaFactory服务端口">
+              <el-input-number v-model="settings.factoryPort"></el-input-number>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="save">提交</el-button>
@@ -97,7 +100,10 @@ export default {
         logSaveDay: 7,
         gpuFlag: false,
         updatePush: false,
-        pyDir: ''
+        pyDir: '',
+        proxyIp: '',
+        proxyPort: '',
+        factoryPort: ''
       }
     }
   },
